@@ -1,17 +1,27 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
+import numpy as np
+import cv2
+
+from app.services.yoloAnalysis import analyze_image
+from app.models import ImageAnalysisResponse
 
 router = APIRouter()
 
-@router.post("/analyze-image", response_model=str)
+@router.post("/analyze-image", response_model=ImageAnalysisResponse)
 async def analyze_image(file: UploadFile = File(...)):
     """
     Analyze an uploaded image and return a description.
     """
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
 
-    # Placeholder for image analysis logic
-    # In a real implementation, you would process the image and generate a description
-    description = "This is a placeholder description of the analyzed image."
+    imageBytes = await file.read()
 
-    return description
+    # Image to OpenCV
+    npImage = np.frombuffer(imageBytes, np.uint8)
+    cvImage = cv2.imdecode(npImage, cv2.IMREAD_COLOR)
+
+    if cvImage is None:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    # Pass OpenCV image to service
+    result = analyze_image(cvImage)
+    return result
