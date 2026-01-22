@@ -21,12 +21,26 @@ class ImageAnalysisResponse(BaseModel):
     imageWidth: int
     imageHeight: int
     detections: List[Detection]
+    maxArea: float
 
-class ProminentObject(BaseModel):
+class ProminentData(BaseModel):
     className: str
     xCenter: float
     yCenter: float
     sizeScore: float
 
 class ProminentObjectArray(BaseModel):
-    prominentObjects: List[ProminentObject]
+    prominentObjects: List[ProminentData]
+
+class YOLOFeatures(BaseModel):
+    confidence: float
+    pixelArea: float
+    score: float
+    bboxWidth: float
+    bboxHeight: float
+    bboxAspectRatio: float
+
+class DistanceXYZ(BaseModel):
+    xDistance: float
+    yDistance: float
+    zDistance: float

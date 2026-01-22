@@ -2,15 +2,16 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 import numpy as np
 import cv2
 
-from app.services.yoloAnalysis import analyze_image
+from app.services.yoloAnalysis import YoloAnalysis
 from app.models import ImageAnalysisResponse
 
 router = APIRouter()
+YOLOAnalyzer = YoloAnalysis()
 
 @router.post("/analyze-image", response_model=ImageAnalysisResponse)
 async def analyze_image(file: UploadFile = File(...)):
     """
-    Analyze an uploaded image and return a description.
+    Analyze an uploaded image, convert to OpenCV format and return a description.
     """
 
     imageBytes = await file.read()
@@ -23,5 +24,5 @@ async def analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid image file")
 
     # Pass OpenCV image to service
-    result = analyze_image(cvImage)
+    result = YOLOAnalyzer.extractDetections(cvImage)
     return result
