@@ -24,5 +24,5 @@ async def analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid image file")
 
     # Pass OpenCV image to service
-    result = YOLOAnalyzer.extractDetections(cvImage)
-    return result
+    imgAnalaysis = YOLOAnalyzer.extractStatistics(cvImage)
+    return imgAnalaysis
