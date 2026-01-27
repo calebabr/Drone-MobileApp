@@ -8,6 +8,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.include_router(analyzeImage.router)
+
 @app.get("/")
 def root():
     return {"status": "Drone Vision API running", "version": "0.1.0"}

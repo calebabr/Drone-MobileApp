@@ -10,3 +10,5 @@ img = cv2.imread(img_path)
 result = yoloAnalyzer.extractStatistics(img)
 data = result['detections']
 print(data[8])
+print(f"Total Detections: {len(data)}")
+print("Distance to object 8: ({}, {}, {})".format(data[8]["distance"]["x"], data[8]["distance"]["y"], data[8]["distance"]["z"]))

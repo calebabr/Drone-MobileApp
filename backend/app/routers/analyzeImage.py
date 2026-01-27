@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 from app.services.yoloAnalysis import YoloAnalysis
-from app.models import ImageAnalysisResponse
+from app.models import ImageAnalysisResponse, MostProminentResponse
 
 router = APIRouter()
 YOLOAnalyzer = YoloAnalysis()
@@ -25,4 +25,17 @@ async def analyze_image(file: UploadFile = File(...)):
 
     # Pass OpenCV image to service
     imgAnalaysis = YOLOAnalyzer.extractStatistics(cvImage)
+
     return imgAnalaysis
+
+@router.get("/most-prominent-object", response_model=MostProminentResponse)
+async def get_most_prominent_object():
+    """
+    Retrieve the most prominent detected object from the last analyzed image.
+    """
+    if not YOLOAnalyzer.detections:
+        raise HTTPException(status_code=404, detail="No detections available. Please analyze an image first.")
+
+    most_prominent = YOLOAnalyzer.getMostProminent(YOLOAnalyzer.detections)
+
+    return most_prominent

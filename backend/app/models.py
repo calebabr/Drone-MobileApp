@@ -1,46 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import List
 
-class BoundingBox(BaseModel):
-    xMin: float
-    yMin: float
-    xMax: float
-    yMax: float
-    xCenter: float
-    yCenter:float
-    width: float
-    height: float
-    pixelArea: float
-
-class Detection(BaseModel):
-    className: str
-    confidence: float
-    bBox: BoundingBox
-
 class ImageAnalysisResponse(BaseModel):
-    imageWidth: int
-    imageHeight: int
-    detections: List[Detection]
-    maxArea: float
+    success: bool = Field(..., description="Indicates if the analysis was successful")
+    detections: List[dict] = Field(..., description="List of detected objects with their statistics")
+    count: int = Field(..., description="Total number of detected objects")
 
-class ProminentData(BaseModel):
-    className: str
-    xCenter: float
-    yCenter: float
-    sizeScore: float
+class MostProminentResponse(BaseModel):
+    success: bool = Field(..., description="Indicates if the retrieval was successful")
+    most_prominent: dict = Field(..., description="Details of the most prominent detected object")
 
-class ProminentObjectArray(BaseModel):
-    prominentObjects: List[ProminentData]
 
-class YOLOFeatures(BaseModel):
-    confidence: float
-    pixelArea: float
-    score: float
-    bboxWidth: float
-    bboxHeight: float
-    bboxAspectRatio: float
-
-class DistanceXYZ(BaseModel):
-    xDistance: float
-    yDistance: float
-    zDistance: float
