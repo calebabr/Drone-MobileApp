@@ -4,11 +4,11 @@ A React Native mobile app for uploading images and analyzing them using YOLO obj
 
 ## Features
 
-- 📷 Pick images from gallery
-- 📸 Take photos with camera
-- 🔍 Analyze images with YOLO backend
-- 📊 Display detection statistics
-- 🎯 Show detected objects with confidence scores
+- Pick images from gallery
+- Take photos with camera
+- Analyze images with YOLO backend
+- Display detection statistics
+- Show detected objects with confidence scores
 
 ## Setup Instructions
 
@@ -21,7 +21,7 @@ npm install
 
 ### 2. Configure Backend URL
 
-Open `App.js` and update the backend URL constants (around line 18-19) with your FastAPI server address:
+Open `App.js` and update the backend URL constants (around line 21-22) with your FastAPI server address:
 
 ```javascript
 const BACKEND_URL = 'http://YOUR_BACKEND_IP:PORT/analyze-image';
@@ -29,9 +29,7 @@ const PROMINENT_URL = 'http://YOUR_BACKEND_IP:PORT/most-prominent-object';
 ```
 
 **Important Notes:**
-- For Android emulator: use `http://10.0.2.2:8000/analyze-image` if backend is on localhost (default FastAPI port is 8000)
-- For physical device: use your computer's IP address (e.g., `http://192.168.1.100:8000/analyze-image`)
-- For iOS simulator: use `http://localhost:8000/analyze-image`
+- Run "ipconfig" in a command prompt and note down the IPv4 address. That will be the FastAPI server address that you will use. Port should always be 8000. 
 
 ### 3. Run the App
 
@@ -54,7 +52,7 @@ npm run ios      # For iOS (Mac only)
 
 ## Backend Requirements
 
-Your FastAPI backend should have these endpoints:
+FastAPI backend has endpoints:
 
 ### 1. POST `/analyze-image`
 Accepts an image file and returns detection results:
@@ -117,7 +115,7 @@ Make sure your FastAPI server is running:
 cd path/to/backend
 
 # Run with uvicorn (default port 8000)
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --reload
 ```
 
 ## Troubleshooting
@@ -126,7 +124,6 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 - Make sure your backend server is running
 - Check that the BACKEND_URL is correct
 - Ensure your phone and backend are on the same network (for local testing)
-- For Android emulator, use `10.0.2.2` instead of `localhost`
 
 ### Camera/Gallery permissions not working
 - Make sure you've granted permissions when prompted
@@ -157,6 +154,3 @@ frontend/
 - Add export functionality for results
 - Implement real-time camera analysis
 
-## License
-
-MIT
