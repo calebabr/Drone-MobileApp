@@ -8,6 +8,6 @@ class ImageAnalysisResponse(BaseModel):
 
 class MostProminentResponse(BaseModel):
     success: bool = Field(..., description="Indicates if the retrieval was successful")
-    most_prominent: dict = Field(..., description="Details of the most prominent detected object")
+    mostProminentObject: dict = Field(..., description="Details of the most prominent detected object")
 
 

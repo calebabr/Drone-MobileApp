@@ -20,7 +20,7 @@ class YoloAnalysis:
 
     def sigmoid(self, x: float, k: float, x0: float) -> float:
         return 1 / (1 + np.exp(-k * (x - x0)))
-    
+
     def extractStatistics(self, image):
         results = self.YOLOmodel(image)
 
@@ -77,13 +77,13 @@ class YoloAnalysis:
             normArea = obj["pixelArea"] / max([obj["pixelArea"] for obj in self.detections])
             normConf = self.sigmoid(obj["confidence"], k=15.0, x0 = 0.67)
             obj["score"] = normArea * 0.5 + normConf * 0.5
-        
+
         return {
             "success": True,
             "detections": self.detections,
             "count": len(self.detections),
         }
-    
+
     def getMostProminent(self, detections):
         return {
             "success": True,

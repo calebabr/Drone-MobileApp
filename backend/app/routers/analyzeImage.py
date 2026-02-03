@@ -24,9 +24,10 @@ async def analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid image file")
 
     # Pass OpenCV image to service
-    imgAnalaysis = YOLOAnalyzer.extractStatistics(cvImage)
+    imgAnalysis = YOLOAnalyzer.extractStatistics(cvImage)
+    YOLOAnalyzer.detections = imgAnalysis['detections']
 
-    return imgAnalaysis
+    return imgAnalysis
 
 @router.get("/most-prominent-object", response_model=MostProminentResponse)
 async def get_most_prominent_object():
@@ -36,6 +37,6 @@ async def get_most_prominent_object():
     if not YOLOAnalyzer.detections:
         raise HTTPException(status_code=404, detail="No detections available. Please analyze an image first.")
 
-    most_prominent = YOLOAnalyzer.getMostProminent(YOLOAnalyzer.detections)
+    mostProminent = YOLOAnalyzer.getMostProminent(YOLOAnalyzer.detections)
 
-    return most_prominent
+    return mostProminent
