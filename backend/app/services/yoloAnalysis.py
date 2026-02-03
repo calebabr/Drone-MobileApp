@@ -22,6 +22,7 @@ class YoloAnalysis:
         return 1 / (1 + np.exp(-k * (x - x0)))
 
     def extractStatistics(self, image):
+        self.detections = []
         results = self.YOLOmodel(image)
 
         # Iterate through all results in image and extract bounding boxes and class names

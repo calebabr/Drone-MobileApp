@@ -18,8 +18,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   // Replace with your actual backend URL
-  const BACKEND_URL = 'http://192.168.1.48:8000/analyze-image';
-  const PROMINENT_URL = 'http://192.168.1.48:8000/most-prominent-object';
+  const BACKEND_URL = 'http://172.17.200.227:8000/analyze-image';
+  const PROMINENT_URL = 'http://172.17.200.227:8000/most-prominent-object';
 
   // Request camera permissions
   const requestPermissions = async () => {
