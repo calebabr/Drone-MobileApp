@@ -151,6 +151,4 @@ frontend/
 - Add image preprocessing options
 - Display annotated images with bounding boxes
 - Save analysis history
-- Add export functionality for results
-- Implement real-time camera analysis
-
+- AI chatbot
