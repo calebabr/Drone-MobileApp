@@ -110,7 +110,7 @@ Make sure your FastAPI server is running:
 cd path/to/backend
 
 # Run with uvicorn (default port 8000)
-uvicorn main:app --reload --host 0.0.0.0 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --reload
 ```
 
 ## Troubleshooting
