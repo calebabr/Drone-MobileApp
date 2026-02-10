@@ -21,11 +21,10 @@ npm install
 
 ### 2. Configure Backend URL
 
-Open `App.js` and update the backend URL constants (around line 21-22) with your FastAPI server address:
+Open `constants.js` in frontend/src/config and update the backend URL constant on line 1 with your FastAPI server address:
 
 ```javascript
 const BACKEND_URL = 'http://YOUR_BACKEND_IP:PORT/analyze-image';
-const PROMINENT_URL = 'http://YOUR_BACKEND_IP:PORT/most-prominent-object';
 ```
 
 **Important Notes:**
@@ -35,11 +34,7 @@ const PROMINENT_URL = 'http://YOUR_BACKEND_IP:PORT/most-prominent-object';
 
 ```bash
 # Start the Expo development server
-npm start
-
-# Or run directly on a platform
-npm run android  # For Android
-npm run ios      # For iOS (Mac only)
+npx expo start
 ```
 
 ### 4. Test on Your Device
@@ -133,7 +128,7 @@ uvicorn main:app --reload --host 0.0.0.0 --reload
 ### App won't start
 ```bash
 # Clear cache and restart
-npm start -- --clear
+npx expo start -c
 ```
 
 ## Project Structure
