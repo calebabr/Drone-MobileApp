@@ -1,4 +1,4 @@
-export const BACKEND_URL = 'http://192.168.1.48:8000';
+export const BACKEND_URL = 'http://172.17.201.71:8000';
 
 export const COLORS = {
     primary: '#2196F3',
