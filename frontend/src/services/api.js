@@ -35,3 +35,16 @@ export const clearAnalysisHistory = async () => {
     const response = await axios.delete(`${BACKEND_URL}/analysis-history`);
     return response.data;
 };
+
+export const sendChatMessage = async (message, analysisId = null) => {
+    const response = await axios.post(`${BACKEND_URL}/chat`, {
+        message,
+        analysis_id: analysisId,
+    });
+    return response.data;
+};
+
+export const clearChatHistory = async () => {
+    const response = await axios.delete(`${BACKEND_URL}/chat/history`);
+    return response.data;
+};

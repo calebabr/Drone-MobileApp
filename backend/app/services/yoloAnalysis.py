@@ -254,3 +254,5 @@ class YoloAnalysis:
         """Clear analysis history"""
         self.analysis_history = []
         return {"success": True, "message": "History cleared"}
+
+yolo_analyzer = YoloAnalysis()

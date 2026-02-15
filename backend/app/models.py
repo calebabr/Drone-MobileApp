@@ -44,3 +44,11 @@ class SingleAnalysisResponse(BaseModel):
     success: bool
     analysis: ImageAnalysisResponse
 
+class ChatRequest(BaseModel):
+    message: str = Field(..., description="User's message")
+    analysis_id: Optional[str] = Field(None, description="Optional analysis ID for context")
+
+class ChatResponse(BaseModel):
+    success: bool
+    message: str
+    role: str = "assistant"

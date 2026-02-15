@@ -2,7 +2,8 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 import numpy as np
 import cv2
 
-from app.services.yoloAnalysis import YoloAnalysis
+from app.services.yoloAnalysis import yolo_analyzer
+
 from app.models import (
     ImageAnalysisResponse,
     MostProminentResponse,
@@ -11,7 +12,7 @@ from app.models import (
 )
 
 router = APIRouter()
-YOLOAnalyzer = YoloAnalysis()
+# YOLOAnalyzer = YoloAnalysis()
 
 @router.post("/analyze-image", response_model=ImageAnalysisResponse)
 async def analyze_image(file: UploadFile = File(...)):
@@ -29,8 +30,8 @@ async def analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid image file")
 
     # Pass OpenCV image to service
-    imgAnalysis = YOLOAnalyzer.extractStatistics(cvImage)
-    YOLOAnalyzer.detections = imgAnalysis['detections']
+    imgAnalysis = yolo_analyzer.extractStatistics(cvImage)
+    yolo_analyzer.detections = imgAnalysis['detections']
 
     return imgAnalysis
 
@@ -39,10 +40,10 @@ async def get_most_prominent_object():
     """
     Retrieve the most prominent detected object from the last analyzed image.
     """
-    if not YOLOAnalyzer.detections:
+    if not yolo_analyzer.detections:
         raise HTTPException(status_code=404, detail="No detections available. Please analyze an image first.")
 
-    mostProminent = YOLOAnalyzer.getMostProminent(YOLOAnalyzer.detections)
+    mostProminent = yolo_analyzer.getMostProminent(yolo_analyzer.detections)
 
     return mostProminent
 
@@ -51,7 +52,7 @@ async def get_analysis_history():
     """
     Retrieve the history of all image analyses in this session.
     """
-    history = YOLOAnalyzer.get_history()
+    history = yolo_analyzer.get_history()
     return {
         "success": True,
         "history": history
@@ -62,7 +63,7 @@ async def get_analysis_by_id(analysis_id: str):
     """
     Retrieve a specific analysis by its ID.
     """
-    analysis = YOLOAnalyzer.get_analysis_by_id(analysis_id)
+    analysis = yolo_analyzer.get_analysis_by_id(analysis_id)
 
     if analysis is None:
         raise HTTPException(status_code=404, detail=f"Analysis with ID {analysis_id} not found")
@@ -77,5 +78,5 @@ async def clear_analysis_history():
     """
     Clear all analysis history.
     """
-    result = YOLOAnalyzer.clear_history()
+    result = yolo_analyzer.clear_history()
     return result

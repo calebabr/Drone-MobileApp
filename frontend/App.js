@@ -6,6 +6,7 @@ import ActionButtons from './src/components/ActionButtons';
 import ResultsView from './src/components/ResultsView';
 import HistoryModal from './src/components/HistoryModal';
 import HistoryDetailModal from './src/components/HistoryDetailModal';
+import ChatModal from './src/components/ChatModal';
 import { pickImageFromGallery, capturePhoto } from './src/utils/imageUtils';
 import * as api from './src/services/api';
 import { commonStyles } from './src/styles/commonStyles';
@@ -17,6 +18,7 @@ export default function App() {
   const [analysisHistory, setAnalysisHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+  const [showChat, setShowChat] = useState(false);
 
   const handlePickImage = async () => {
     const uri = await pickImageFromGallery();
@@ -128,7 +130,12 @@ export default function App() {
         historyCount={analysisHistory.length}
       />
 
-      {results && <ResultsView results={results} />}
+      {results && (
+        <ResultsView
+          results={results}
+          onOpenChat={() => setShowChat(true)}
+        />
+      )}
 
       <HistoryModal
         visible={showHistory}
@@ -142,6 +149,12 @@ export default function App() {
         visible={!!selectedHistoryItem}
         analysis={selectedHistoryItem}
         onClose={() => setSelectedHistoryItem(null)}
+      />
+
+      <ChatModal
+        visible={showChat}
+        onClose={() => setShowChat(false)}
+        analysisId={results?.analysis_id}
       />
     </ScrollView>
   );

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import analyzeImage
+from app.routers import analyzeImage, chat
 
 app = FastAPI(
     title="Drone Vision Backend",
@@ -9,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(analyzeImage.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def root():

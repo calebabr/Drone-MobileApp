@@ -20,8 +20,8 @@ export default function ProminentObject({ mostProminent }) {
             Size: {mostProminent.width}×{mostProminent.height}px
             </Text>
             <Text style={styles.detailText}>
-            Distance: X:{mostProminent.distance.x.toFixed(2)}m, 
-            Y:{mostProminent.distance.y.toFixed(2)}m, 
+            Distance: X:{mostProminent.distance.x.toFixed(2)}m,
+            Y:{mostProminent.distance.y.toFixed(2)}m,
             Z:{mostProminent.distance.z.toFixed(2)}m
             </Text>
         </View>
