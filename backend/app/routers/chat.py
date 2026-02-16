@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from app.services.chatbot import ChatBot
-from app.services.yoloAnalysis import YoloAnalysis
+from app.services.yoloAnalysis import yolo_analyzer
 from app.models import ChatRequest, ChatResponse
 
 router = APIRouter()
 chatService = ChatBot()
-yoloAnalyzer = YoloAnalysis()
+# yoloAnalyzer = YoloAnalysis()
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
@@ -16,7 +16,7 @@ async def chat(request: ChatRequest):
     try:
         analysis_data = None
         if request.analysis_id:
-            analysis_data = yoloAnalyzer.get_analysis_by_id(request.analysis_id)
+            analysis_data = yolo_analyzer.get_analysis_by_id(request.analysis_id)
 
         response_message = chatService.chat(request.message, analysis_data)
 

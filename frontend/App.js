@@ -19,12 +19,16 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
   const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);  // Track if current image was analyzed
 
   const handlePickImage = async () => {
     const uri = await pickImageFromGallery();
     if (uri) {
       setSelectedImage(uri);
       setResults(null);
+      setChatMessages([]);
+      setHasAnalyzed(false);  // Reset for new image
     }
   };
 
@@ -33,6 +37,8 @@ export default function App() {
     if (uri) {
       setSelectedImage(uri);
       setResults(null);
+      setChatMessages([]);
+      setHasAnalyzed(false);  // Reset for new photo
     }
   };
 
@@ -42,9 +48,26 @@ export default function App() {
       return;
     }
 
+    if (hasAnalyzed) {
+      Alert.alert(
+        'Already Analyzed',
+        'This image has already been analyzed. Select a new image to analyze again.'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const analysisData = await api.analyzeImage(selectedImage);
+
+      // Check if backend detected a duplicate
+      if (analysisData.is_duplicate) {
+        Alert.alert(
+          'Duplicate Analysis',
+          'This image was already analyzed. Showing previous results.'
+        );
+      }
+
       const prominentObject = await api.getMostProminentObject().catch(() => null);
 
       setResults({
@@ -52,6 +75,8 @@ export default function App() {
         mostProminent: prominentObject,
       });
 
+      setChatMessages([]);
+      setHasAnalyzed(true);  // Mark as analyzed
       fetchAnalysisHistory();
     } catch (error) {
       console.error('Error analyzing image:', error);
@@ -128,6 +153,7 @@ export default function App() {
         hasImage={!!selectedImage}
         isLoading={loading}
         historyCount={analysisHistory.length}
+        hasAnalyzed={hasAnalyzed}  // Pass down to disable button
       />
 
       {results && (
@@ -155,6 +181,8 @@ export default function App() {
         visible={showChat}
         onClose={() => setShowChat(false)}
         analysisId={results?.analysis_id}
+        messages={chatMessages}
+        setMessages={setChatMessages}
       />
     </ScrollView>
   );

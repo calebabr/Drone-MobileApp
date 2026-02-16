@@ -9,6 +9,7 @@ import pandas as pd
 import base64
 from datetime import datetime
 from collections import Counter
+import hashlib
 
 class YoloAnalysis:
     def __init__(self):
@@ -21,7 +22,12 @@ class YoloAnalysis:
             self.distance_model = joblib.load(f)
 
         self.detections = []
-        self.analysis_history = []  # Store analysis history
+        self.analysis_history = []
+        self.analyzed_image_hashes = set()  # Track ALL analyzed images
+
+    def compute_image_hash(self, image):
+        """Compute hash of image to detect duplicates"""
+        return hashlib.md5(image.tobytes()).hexdigest()
 
     def sigmoid(self, x: float, k: float, x0: float) -> float:
         return 1 / (1 + np.exp(-k * (x - x0)))
@@ -31,24 +37,20 @@ class YoloAnalysis:
         annotated = image.copy()
 
         for obj in detections:
-            # Draw bounding box
             cv2.rectangle(
                 annotated,
                 (obj["xMin"], obj["yMin"]),
                 (obj["xMax"], obj["yMax"]),
-                (0, 255, 0),  # Green color
+                (0, 255, 0),
                 2
             )
 
-            # Prepare label with class name, confidence, and score
             label = f"{obj['class_name']}: {obj['confidence']:.2f} (S:{obj['score']:.2f})"
 
-            # Calculate label size for background
             (label_width, label_height), baseline = cv2.getTextSize(
                 label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
             )
 
-            # Draw label background
             cv2.rectangle(
                 annotated,
                 (obj["xMin"], obj["yMin"] - label_height - 10),
@@ -57,7 +59,6 @@ class YoloAnalysis:
                 -1
             )
 
-            # Draw label text
             cv2.putText(
                 annotated,
                 label,
@@ -87,20 +88,16 @@ class YoloAnalysis:
                 "coverage_percentage": 0
             }
 
-        # Class distribution
         class_counts = Counter([obj["class_name"] for obj in detections])
 
-        # Average metrics
         avg_confidence = np.mean([obj["confidence"] for obj in detections])
         avg_area = np.mean([obj["pixelArea"] for obj in detections])
         avg_score = np.mean([obj["score"] for obj in detections])
 
-        # Coverage calculation
         total_detection_area = sum([obj["pixelArea"] for obj in detections])
         image_area = image_shape[0] * image_shape[1]
         coverage_percentage = (total_detection_area / image_area) * 100
 
-        # Distance statistics
         avg_distance = {
             "x": np.mean([obj["distance"]["x"] for obj in detections]),
             "y": np.mean([obj["distance"]["y"] for obj in detections]),
@@ -123,11 +120,31 @@ class YoloAnalysis:
         }
 
     def extractStatistics(self, image):
-        """Main analysis function with enhanced statistics and visualization"""
+        """Main analysis function with duplicate detection"""
+        # Check if this image has EVER been analyzed
+        image_hash = self.compute_image_hash(image)
+
+        if image_hash in self.analyzed_image_hashes:
+            # Find and return the existing analysis
+            for item in self.analysis_history:
+                # Compare with stored hash
+                if item.get("image_hash") == image_hash:
+                    return {
+                        "success": True,
+                        "detections": item["detections"],
+                        "count": item["count"],
+                        "annotated_image": item["annotated_image"],
+                        "statistics": item["statistics"],
+                        "analysis_id": item["analysis_id"],
+                        "is_duplicate": True
+                    }
+
+        # Mark this image as analyzed
+        self.analyzed_image_hashes.add(image_hash)
+
         self.detections = []
         results = self.YOLOmodel(image)
 
-        # Iterate through all results in image and extract bounding boxes and class names
         for r in results:
             for box in r.boxes:
                 xMin, yMin, xMax, yMax = map(int, box.xyxy[0])
@@ -143,10 +160,8 @@ class YoloAnalysis:
 
                 aspectRatio = boxWidth / boxHeight if boxHeight != 0 else 0
 
-                # Initialize score, calculate later
                 score = 0
 
-                # Distance prediction
                 distanceFeatures = pd.DataFrame([[confidence, pixelArea, score, boxWidth, boxHeight, aspectRatio]],
                         columns=['pred_conf', 'pred_area', 'score', 'width', 'height', 'aspect_ratio'])
                 predictions = self.distance_model.predict(distanceFeatures)
@@ -175,7 +190,6 @@ class YoloAnalysis:
                     },
                 })
 
-        # Calculate score
         if self.detections:
             max_area = max([obj["pixelArea"] for obj in self.detections])
             for obj in self.detections:
@@ -183,21 +197,17 @@ class YoloAnalysis:
                 normConf = self.sigmoid(obj["confidence"], k=15.0, x0=0.67)
                 obj["score"] = normArea * 0.5 + normConf * 0.5
 
-        # Generate annotated image
         annotated_image = self.annotate_image(image, self.detections)
         annotated_base64 = self.image_to_base64(annotated_image)
 
-        # Calculate statistics
         statistics = self.calculate_statistics(self.detections, image.shape)
 
-        # Generate unique analysis ID
         analysis_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
-        # Create thumbnail for history
         thumbnail = cv2.resize(annotated_image, (200, 150))
         thumbnail_base64 = self.image_to_base64(thumbnail)
 
-        # Store in history
+        # Store with image hash for future duplicate detection
         self.analysis_history.append({
             "analysis_id": analysis_id,
             "timestamp": datetime.now().isoformat(),
@@ -205,7 +215,8 @@ class YoloAnalysis:
             "thumbnail": thumbnail_base64,
             "statistics": statistics,
             "detections": self.detections.copy(),
-            "annotated_image": annotated_base64
+            "annotated_image": annotated_base64,
+            "image_hash": image_hash  # Store hash with analysis
         })
 
         return {
@@ -214,7 +225,8 @@ class YoloAnalysis:
             "count": len(self.detections),
             "annotated_image": annotated_base64,
             "statistics": statistics,
-            "analysis_id": analysis_id
+            "analysis_id": analysis_id,
+            "is_duplicate": False
         }
 
     def getMostProminent(self, detections):
@@ -253,6 +265,7 @@ class YoloAnalysis:
     def clear_history(self):
         """Clear analysis history"""
         self.analysis_history = []
+        self.analyzed_image_hashes.clear()  # Clear hash tracking
         return {"success": True, "message": "History cleared"}
 
 yolo_analyzer = YoloAnalysis()

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { sendChatMessage } from '../services/api';
 import { COLORS } from '../config/constants';
+import { useState } from 'react';
 
-export default function ChatModal({ visible, onClose, analysisId }) {
-    const [messages, setMessages] = useState([]);
+export default function ChatModal({ visible, onClose, analysisId, messages, setMessages }) {
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const scrollViewRef = useRef();
@@ -63,9 +63,8 @@ export default function ChatModal({ visible, onClose, analysisId }) {
     };
 
     const handleClose = () => {
-        setMessages([]);
         setInputText('');
-        onClose();
+        onClose();  // Messages are preserved in App.js state
     };
 
     return (

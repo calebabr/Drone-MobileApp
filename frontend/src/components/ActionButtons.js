@@ -10,37 +10,44 @@ export default function ActionButtons({
     hasImage,
     isLoading,
     historyCount,
-}) {
+    hasAnalyzed,
+    }) {
     return (
         <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={onPickImage}>
-                <Text style={styles.buttonText}>Pick from Gallery</Text>
-            </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={onPickImage}>
+            <Text style={styles.buttonText}>Pick from Gallery</Text>
+        </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={onTakePhoto}>
-                <Text style={styles.buttonText}>Take Photo</Text>
-            </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={onTakePhoto}>
+            <Text style={styles.buttonText}>Take Photo</Text>
+        </TouchableOpacity>
 
-            {hasImage && (
-                <TouchableOpacity
-                    style={[styles.button, styles.analyzeButton]}
-                    onPress={onAnalyze}
-                    disabled={isLoading}
-                >
-                    {isLoading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={styles.buttonText}>Analyze Image</Text>
-                    )}
-                </TouchableOpacity>
-            )}
-
+        {hasImage && (
             <TouchableOpacity
-                style={[styles.button, styles.historyButton]}
-                onPress={onViewHistory}
+            style={[
+                styles.button,
+                styles.analyzeButton,
+                hasAnalyzed && styles.disabledButton
+            ]}
+            onPress={onAnalyze}
+            disabled={isLoading || hasAnalyzed}
             >
-                <Text style={styles.buttonText}>View History ({historyCount})</Text>
+            {isLoading ? (
+                <ActivityIndicator color="#fff" />
+            ) : (
+                <Text style={styles.buttonText}>
+                {hasAnalyzed ? 'Already Analyzed' : 'Analyze Image'}
+                </Text>
+            )}
             </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+            style={[styles.button, styles.historyButton]}
+            onPress={onViewHistory}
+        >
+            <Text style={styles.buttonText}>View History ({historyCount})</Text>
+        </TouchableOpacity>
         </View>
     );
 }
@@ -63,6 +70,9 @@ const styles = StyleSheet.create({
     historyButton: {
         backgroundColor: COLORS.warning,
         marginTop: 5,
+    },
+    disabledButton: {
+        backgroundColor: '#ccc',
     },
     buttonText: {
         color: COLORS.white,
