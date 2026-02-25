@@ -1,4 +1,5 @@
 import os
+from openai import OpenAI
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -6,7 +7,7 @@ load_dotenv()
 
 class ChatService:
     def __init__(self):
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.conversation_history = []
 
     def getSystemPrompt(self, analysis_data=None, all_analyses=None):
@@ -143,7 +144,7 @@ Individual Detections:
         messages.append({"role": "user", "content": user_message})
 
         response = self.client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="gpt-4o-mini",
             messages=messages,
             max_tokens=500,
             temperature=0.7,

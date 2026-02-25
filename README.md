@@ -1,149 +1,117 @@
 # Drone Image Analysis App
 
-A React Native mobile app for uploading images and analyzing them using YOLO object detection.
+Mobile app for analyzing drone imagery using YOLOv8 object detection with AI-powered chat assistant.
 
-## Features
+## Prerequisites
 
-- Pick images from gallery
-- Take photos with camera
-- Analyze images with YOLO backend
-- Display detection statistics
-- Show detected objects with confidence scores
+- Python 3.10+
+- Node.js 18+
+- Expo CLI
+- OpenAI API key
 
-## Setup Instructions
+## Backend Setup
 
-### 1. Install Dependencies
+1. Navigate to backend folder:
+```bash
+cd backend
+```
 
+2. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Download model files and place in `backend/data/`:
+   - `YOLOv8.pt` - YOLO detection model
+   - `distance_model_rf.joblib` - Distance estimation model
+
+5. Create `.env` file in `backend/` folder:
+```
+OPENAI_API_KEY=your_key_here
+```
+
+6. Run the server:
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Backend will be available at `http://localhost:8000`
+
+## Frontend Setup
+
+1. Navigate to frontend folder:
 ```bash
 cd frontend
+```
+
+2. Install dependencies:
+```bash
 npm install
 ```
 
-### 2. Configure Backend URL
-
-Open `constants.js` in frontend/src/config and update the backend URL constant on line 1 with your FastAPI server address:
-
+3. Update backend URL in `src/config/constants.js`:
 ```javascript
-const BACKEND_URL = 'http://YOUR_BACKEND_IP:PORT/analyze-image';
+export const BACKEND_URL = 'http://YOUR_IP_ADDRESS:8000';
 ```
 
-**Important Notes:**
-- Run "ipconfig" in a command prompt and note down the IPv4 address. That will be the FastAPI server address that you will use. Port should always be 8000. 
-
-### 3. Run the App
-
+4. Run the app:
 ```bash
-# Start the Expo development server
 npx expo start
 ```
 
-### 4. Test on Your Device
-
-1. Install the **Expo Go** app on your phone:
-   - [iOS App Store](https://apps.apple.com/app/expo-go/id982107779)
-   - [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
-
-2. Scan the QR code from the Expo development server
-
-## Backend Requirements
-
-FastAPI backend has endpoints:
-
-### 1. POST `/analyze-image`
-Accepts an image file and returns detection results:
-
-```json
-{
-  "success": true,
-  "count": 3,
-  "detections": [
-    {
-      "class_name": "person",
-      "confidence": 0.95,
-      "pixelArea": 45000,
-      "score": 0.823,
-      "xMin": 100,
-      "yMin": 50,
-      "xMax": 300,
-      "yMax": 450,
-      "xCenter": 200,
-      "yCenter": 250,
-      "width": 200,
-      "height": 400,
-      "aspectRatio": 0.5,
-      "distance": {
-        "x": 2.5,
-        "y": 1.2,
-        "z": 5.8
-      }
-    }
-  ]
-}
-```
-
-### 2. GET `/most-prominent-object`
-Returns the object with the highest score from the last analysis:
-
-```json
-{
-  "success": true,
-  "mostProminentObject": {
-    "class_name": "person",
-    "confidence": 0.95,
-    "score": 0.823,
-    "distance": {
-      "x": 2.5,
-      "y": 1.2,
-      "z": 5.8
-    }
-    // ... other fields
-  }
-}
-```
-
-### Running Your FastAPI Backend
-
-Make sure your FastAPI server is running:
-
-```bash
-# Navigate to your backend directory
-cd path/to/backend
-
-# Run with uvicorn (default port 8000)
-python -m uvicorn app.main:app --host 0.0.0.0 --reload
-```
-
-## Troubleshooting
-
-### "Network Error" when analyzing
-- Make sure your backend server is running
-- Check that the BACKEND_URL is correct
-- Ensure your phone and backend are on the same network (for local testing)
-
-### Camera/Gallery permissions not working
-- Make sure you've granted permissions when prompted
-- Try restarting the app
-- Check app permissions in your device settings
-
-### App won't start
-```bash
-# Clear cache and restart
-npx expo start -c
-```
+5. Scan QR code with Expo Go app on your phone
 
 ## Project Structure
-
 ```
-frontend/
-├── App.js              # Main application component
-├── package.json        # Dependencies
-├── app.json           # Expo configuration
-└── README.md          # This file
+.
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── routers/
+│   │   │   ├── analyzeImage.py
+│   │   │   └── chat.py
+│   │   └── services/
+│   │       ├── yoloAnalysis.py
+│   │       └── chatService.py
+│   ├── data/
+│   │   ├── YOLOv8.pt (not in repo)
+│   │   └── distance_model_rf.joblib (not in repo)
+│   ├── requirements.txt
+│   └── .env (not in repo)
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   ├── config/
+    │   ├── services/
+    │   ├── styles/
+    │   └── utils/
+    ├── App.js
+    ├── app.json
+    └── package.json
 ```
 
-## Next Steps
+## Features
 
-- Add image preprocessing options
-- Display annotated images with bounding boxes
-- Save analysis history
-- AI chatbot
+- YOLOv8 object detection on drone images
+- Distance estimation for detected objects
+- Annotated image visualization with bounding boxes
+- Comprehensive detection statistics
+- Analysis history tracking
+- AI chatbot for answering questions about detections
+
+## API Endpoints
+
+- `POST /analyze-image` - Analyze uploaded image
+- `GET /most-prominent-object` - Get most prominent detection
+- `GET /analysis-history` - Get all analyses in session
+- `GET /analysis/{analysis_id}` - Get specific analysis
+- `DELETE /analysis-history` - Clear history
+- `POST /chat` - Chat with AI about analysis
+- `DELETE /chat/history` - Clear chat history
