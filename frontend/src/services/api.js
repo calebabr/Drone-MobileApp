@@ -36,10 +36,11 @@ export const clearAnalysisHistory = async () => {
     return response.data;
 };
 
-export const sendChatMessage = async (message, analysisId = null) => {
+export const sendChatMessage = async (message, analysisId = null, allAnalysisIds = null) => {
     const response = await axios.post(`${BACKEND_URL}/chat`, {
         message,
         analysis_id: analysisId,
+        all_analysis_ids: allAnalysisIds,
     });
     return response.data;
 };

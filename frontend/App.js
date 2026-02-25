@@ -20,7 +20,7 @@ export default function App() {
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);  // Track if current image was analyzed
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
   const handlePickImage = async () => {
     const uri = await pickImageFromGallery();
@@ -28,7 +28,7 @@ export default function App() {
       setSelectedImage(uri);
       setResults(null);
       setChatMessages([]);
-      setHasAnalyzed(false);  // Reset for new image
+      setHasAnalyzed(false);
     }
   };
 
@@ -38,7 +38,7 @@ export default function App() {
       setSelectedImage(uri);
       setResults(null);
       setChatMessages([]);
-      setHasAnalyzed(false);  // Reset for new photo
+      setHasAnalyzed(false);
     }
   };
 
@@ -60,7 +60,6 @@ export default function App() {
     try {
       const analysisData = await api.analyzeImage(selectedImage);
 
-      // Check if backend detected a duplicate
       if (analysisData.is_duplicate) {
         Alert.alert(
           'Duplicate Analysis',
@@ -76,7 +75,7 @@ export default function App() {
       });
 
       setChatMessages([]);
-      setHasAnalyzed(true);  // Mark as analyzed
+      setHasAnalyzed(true);
       fetchAnalysisHistory();
     } catch (error) {
       console.error('Error analyzing image:', error);
@@ -139,6 +138,9 @@ export default function App() {
     ? `data:image/jpeg;base64,${results.annotated_image}`
     : selectedImage;
 
+  // Extract all analysis IDs from history
+  const allAnalysisIds = analysisHistory.map((item) => item.analysis_id);
+
   return (
     <ScrollView style={commonStyles.container}>
       <Header />
@@ -153,7 +155,7 @@ export default function App() {
         hasImage={!!selectedImage}
         isLoading={loading}
         historyCount={analysisHistory.length}
-        hasAnalyzed={hasAnalyzed}  // Pass down to disable button
+        hasAnalyzed={hasAnalyzed}
       />
 
       {results && (
@@ -181,6 +183,7 @@ export default function App() {
         visible={showChat}
         onClose={() => setShowChat(false)}
         analysisId={results?.analysis_id}
+        allAnalysisIds={allAnalysisIds}
         messages={chatMessages}
         setMessages={setChatMessages}
       />

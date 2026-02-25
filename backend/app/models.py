@@ -24,6 +24,7 @@ class ImageAnalysisResponse(BaseModel):
     annotated_image: str = Field(..., description="Base64 encoded annotated image")
     statistics: dict = Field(..., description="Overall image statistics")
     analysis_id: str = Field(..., description="Unique identifier for this analysis")
+    is_duplicate: bool = Field(False, description="Indicates if this was a duplicate analysis")
 
 class MostProminentResponse(BaseModel):
     success: bool = Field(..., description="Indicates if the retrieval was successful")
@@ -33,7 +34,7 @@ class AnalysisHistoryItem(BaseModel):
     analysis_id: str
     timestamp: str
     count: int
-    thumbnail: str  # Base64 encoded thumbnail
+    thumbnail: str
     statistics: dict
 
 class AnalysisHistoryResponse(BaseModel):
@@ -46,7 +47,8 @@ class SingleAnalysisResponse(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User's message")
-    analysis_id: Optional[str] = Field(None, description="Optional analysis ID for context")
+    analysis_id: Optional[str] = Field(None, description="Current analysis ID for context")
+    all_analysis_ids: Optional[List[str]] = Field(None, description="All analysis IDs in session")
 
 class ChatResponse(BaseModel):
     success: bool

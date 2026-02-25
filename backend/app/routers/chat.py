@@ -1,24 +1,33 @@
 from fastapi import APIRouter, HTTPException
-from app.services.chatbot import ChatBot
+from app.services.chatbot import ChatService
 from app.services.yoloAnalysis import yolo_analyzer
 from app.models import ChatRequest, ChatResponse
 
 router = APIRouter()
-chatService = ChatBot()
-# yoloAnalyzer = YoloAnalysis()
+chatService = ChatService()
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-    """
-    Send a message to the AI chatbot.
-    Optionally include analysis_id to give the AI context about the current image.
-    """
     try:
+        # Get current analysis
         analysis_data = None
         if request.analysis_id:
             analysis_data = yolo_analyzer.get_analysis_by_id(request.analysis_id)
 
-        response_message = chatService.chat(request.message, analysis_data)
+        # Get all analyses in session
+        all_analyses = None
+        if request.all_analysis_ids:
+            all_analyses = []
+            for analysis_id in request.all_analysis_ids:
+                analysis = yolo_analyzer.get_analysis_by_id(analysis_id)
+                if analysis:
+                    all_analyses.append(analysis)
+
+        response_message = chatService.chat(
+            request.message,
+            analysis_data,
+            all_analyses
+        )
 
         return ChatResponse(
             success=True,
@@ -31,6 +40,5 @@ async def chat(request: ChatRequest):
 
 @router.delete("/chat/history")
 async def clearChatHistory():
-    """Clear the conversation history"""
     chatService.clearHistory()
     return {"success": True, "message": "Chat history cleared"}

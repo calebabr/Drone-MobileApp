@@ -1,21 +1,21 @@
 import React, { useRef, useEffect } from 'react';
 import {
-    StyleSheet,
-    Text,
-    View,
-    Modal,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    KeyboardAvoidingView,
-    Platform,
-    ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+  Modal,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { sendChatMessage } from '../services/api';
 import { COLORS } from '../config/constants';
 import { useState } from 'react';
 
-export default function ChatModal({ visible, onClose, analysisId, messages, setMessages }) {
+export default function ChatModal({ visible, onClose, analysisId, allAnalysisIds, messages, setMessages }) {
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const scrollViewRef = useRef();
@@ -26,7 +26,7 @@ export default function ChatModal({ visible, onClose, analysisId, messages, setM
             {
             role: 'assistant',
             content: analysisId
-                ? 'Hello! I have context about your current image analysis. What would you like to know?'
+                ? `Hello! I have context about your current image and ${allAnalysisIds?.length > 1 ? `${allAnalysisIds.length} other analyzed images` : 'all analyzed images'} in this session. What would you like to know?`
                 : 'Hello! Analyze an image first and I can answer questions about the results.',
             },
         ]);
@@ -43,7 +43,7 @@ export default function ChatModal({ visible, onClose, analysisId, messages, setM
         setLoading(true);
 
         try {
-        const response = await sendChatMessage(userMessage, analysisId);
+        const response = await sendChatMessage(userMessage, analysisId, allAnalysisIds);
         setMessages((prev) => [
             ...prev,
             { role: 'assistant', content: response.message },
@@ -64,7 +64,7 @@ export default function ChatModal({ visible, onClose, analysisId, messages, setM
 
     const handleClose = () => {
         setInputText('');
-        onClose();  // Messages are preserved in App.js state
+        onClose();
     };
 
     return (
