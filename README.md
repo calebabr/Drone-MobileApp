@@ -38,7 +38,7 @@ OPENAI_API_KEY=your_key_here
 
 6. Run the server:
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --host 0.0.0.0 --reload
 ```
 
 Backend will be available at `http://localhost:8000`
