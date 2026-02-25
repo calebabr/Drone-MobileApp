@@ -79,10 +79,10 @@ npx expo start
 │   │   │   └── chat.py
 │   │   └── services/
 │   │       ├── yoloAnalysis.py
-│   │       └── chatService.py
+│   │       └── chatbot.py
 │   ├── data/
-│   │   ├── YOLOv8.pt (not in repo)
-│   │   └── distance_model_rf.joblib (not in repo)
+│   │   ├── YOLOv8.pt
+│   │   └── distance_model_rf.joblib
 │   ├── requirements.txt
 │   └── .env (not in repo)
 └── frontend/
