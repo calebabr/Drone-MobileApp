@@ -1,25 +1,55 @@
+print("=" * 80)
+print("LOADING yoloAnalysis.py MODULE - STEP 1")
+print("=" * 80)
+
 import cv2
+print("✅ cv2 imported")
 import numpy as np
+print("✅ numpy imported")
 from ultralytics import YOLO
+print("✅ YOLO imported")
 import pickle
+print("✅ pickle imported")
 from PIL import Image
+print("✅ PIL imported")
 import os
+print("✅ os imported")
 import joblib
+print("✅ joblib imported")
 import pandas as pd
+print("✅ pandas imported")
 import base64
+print("✅ base64 imported")
 from datetime import datetime
+print("✅ datetime imported")
 from collections import Counter
+print("✅ Counter imported")
 import hashlib
+print("✅ hashlib imported")
+
+print("=" * 80)
+print("ALL IMPORTS SUCCESSFUL - STEP 2")
+print("=" * 80)
 
 class YoloAnalysis:
     def __init__(self):
         try:
-            print("=" * 50)
-            print("Initializing YoloAnalysis...")
-            print("=" * 50)
+            print("=" * 80)
+            print("YoloAnalysis.__init__() CALLED - STEP 3")
+            print("=" * 80)
             
             BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
             print(f"BASE_DIR: {BASE_DIR}")
+            
+            # List contents of BASE_DIR
+            print(f"Contents of BASE_DIR: {os.listdir(BASE_DIR)}")
+            
+            data_dir = os.path.join(BASE_DIR, "data")
+            print(f"DATA_DIR: {data_dir}")
+            print(f"DATA_DIR exists: {os.path.exists(data_dir)}")
+            
+            if os.path.exists(data_dir):
+                print(f"Contents of data/: {os.listdir(data_dir)}")
             
             # YOLO Model
             YOLO_MODEL_PATH = os.path.join(BASE_DIR, "data", "YOLOv8.pt")
@@ -29,12 +59,14 @@ class YoloAnalysis:
             if os.path.exists(YOLO_MODEL_PATH):
                 file_size = os.path.getsize(YOLO_MODEL_PATH)
                 print(f"YOLO file size: {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)")
+                if file_size < 1000:
+                    print("⚠️ WARNING: File is very small - might be a Git LFS pointer!")
             else:
-                print("ERROR: YOLO model file not found!")
+                print("❌ ERROR: YOLO model file not found!")
                 
-            print("Loading YOLO model...")
+            print("Loading YOLO model... - STEP 4")
             self.YOLOmodel = YOLO(YOLO_MODEL_PATH)
-            print("✅ YOLO model loaded successfully!")
+            print("✅ YOLO model loaded successfully! - STEP 5")
 
             # Distance Model
             DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_rf.joblib")
@@ -43,27 +75,29 @@ class YoloAnalysis:
             
             if os.path.exists(DISTANCE_MODEL_PATH):
                 file_size = os.path.getsize(DISTANCE_MODEL_PATH)
-                print(f"Distance model file size: {file_size:,} bytes")
+                print(f"Distance model file size: {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)")
+                if file_size < 1000:
+                    print("⚠️ WARNING: File is very small - might be a Git LFS pointer!")
             else:
-                print("ERROR: Distance model file not found!")
+                print("❌ ERROR: Distance model file not found!")
                 
-            print("Loading distance model...")
+            print("Loading distance model... - STEP 6")
             with open(DISTANCE_MODEL_PATH, "rb") as f:
                 self.distance_model = joblib.load(f)
-            print("✅ Distance model loaded successfully!")
+            print("✅ Distance model loaded successfully! - STEP 7")
 
             self.detections = []
             self.analysis_history = []
             self.analyzed_image_hashes = set()
             
-            print("=" * 50)
-            print("YoloAnalysis initialized successfully!")
-            print("=" * 50)
+            print("=" * 80)
+            print("YoloAnalysis initialized successfully! - STEP 8")
+            print("=" * 80)
             
         except Exception as e:
-            print("=" * 50)
-            print(f"❌ ERROR in YoloAnalysis.__init__: {e}")
-            print("=" * 50)
+            print("=" * 80)
+            print(f"❌ EXCEPTION in YoloAnalysis.__init__: {e}")
+            print("=" * 80)
             import traceback
             traceback.print_exc()
             raise
@@ -311,4 +345,12 @@ class YoloAnalysis:
         self.analyzed_image_hashes.clear()
         return {"success": True, "message": "History cleared"}
 
+print("=" * 80)
+print("About to create yolo_analyzer singleton... - STEP 9")
+print("=" * 80)
+
 yolo_analyzer = YoloAnalysis()
+
+print("=" * 80)
+print("yolo_analyzer created successfully! - STEP 10")
+print("=" * 80)
