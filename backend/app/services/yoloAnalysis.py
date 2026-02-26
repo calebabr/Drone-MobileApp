@@ -68,8 +68,8 @@ class YoloAnalysis:
             self.YOLOmodel = YOLO(YOLO_MODEL_PATH)
             print("✅ YOLO model loaded successfully! - STEP 5")
 
-            # Distance Model
-            DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_rf.joblib")
+            # Distance Model - Use lighter version
+            DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_light.pkl")
             print(f"DISTANCE_MODEL_PATH: {DISTANCE_MODEL_PATH}")
             print(f"Distance model file exists: {os.path.exists(DISTANCE_MODEL_PATH)}")
             
@@ -82,8 +82,7 @@ class YoloAnalysis:
                 print("❌ ERROR: Distance model file not found!")
                 
             print("Loading distance model... - STEP 6")
-            with open(DISTANCE_MODEL_PATH, "rb") as f:
-                self.distance_model = joblib.load(f)
+            self.distance_model = joblib.load(DISTANCE_MODEL_PATH)
             print("✅ Distance model loaded successfully! - STEP 7")
 
             self.detections = []
