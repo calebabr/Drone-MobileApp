@@ -1,4 +1,5 @@
-export const BACKEND_URL = 'http://172.17.203.196:8000';
+// export const BACKEND_URL = 'http://172.17.203.196:8000';
+export const BACKEND_URL = 'https://drone-vision-backend.onrender.com';
 
 export const COLORS = {
     primary: '#2196F3',
