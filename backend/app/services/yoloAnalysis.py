@@ -13,17 +13,60 @@ import hashlib
 
 class YoloAnalysis:
     def __init__(self):
-        BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        YOLO_MODEL_PATH = os.path.join(BASE_DIR, "data", "YOLOv8.pt")
-        self.YOLOmodel = YOLO(YOLO_MODEL_PATH)
+        try:
+            print("=" * 50)
+            print("Initializing YoloAnalysis...")
+            print("=" * 50)
+            
+            BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            print(f"BASE_DIR: {BASE_DIR}")
+            
+            # YOLO Model
+            YOLO_MODEL_PATH = os.path.join(BASE_DIR, "data", "YOLOv8.pt")
+            print(f"YOLO_MODEL_PATH: {YOLO_MODEL_PATH}")
+            print(f"YOLO file exists: {os.path.exists(YOLO_MODEL_PATH)}")
+            
+            if os.path.exists(YOLO_MODEL_PATH):
+                file_size = os.path.getsize(YOLO_MODEL_PATH)
+                print(f"YOLO file size: {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)")
+            else:
+                print("ERROR: YOLO model file not found!")
+                
+            print("Loading YOLO model...")
+            self.YOLOmodel = YOLO(YOLO_MODEL_PATH)
+            print("✅ YOLO model loaded successfully!")
 
-        DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_rf.joblib")
-        with open(DISTANCE_MODEL_PATH, "rb") as f:
-            self.distance_model = joblib.load(f)
+            # Distance Model
+            DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_rf.joblib")
+            print(f"DISTANCE_MODEL_PATH: {DISTANCE_MODEL_PATH}")
+            print(f"Distance model file exists: {os.path.exists(DISTANCE_MODEL_PATH)}")
+            
+            if os.path.exists(DISTANCE_MODEL_PATH):
+                file_size = os.path.getsize(DISTANCE_MODEL_PATH)
+                print(f"Distance model file size: {file_size:,} bytes")
+            else:
+                print("ERROR: Distance model file not found!")
+                
+            print("Loading distance model...")
+            with open(DISTANCE_MODEL_PATH, "rb") as f:
+                self.distance_model = joblib.load(f)
+            print("✅ Distance model loaded successfully!")
 
-        self.detections = []
-        self.analysis_history = []
-        self.analyzed_image_hashes = set()  # Track ALL analyzed images
+            self.detections = []
+            self.analysis_history = []
+            self.analyzed_image_hashes = set()
+            
+            print("=" * 50)
+            print("YoloAnalysis initialized successfully!")
+            print("=" * 50)
+            
+        except Exception as e:
+            print("=" * 50)
+            print(f"❌ ERROR in YoloAnalysis.__init__: {e}")
+            print("=" * 50)
+            import traceback
+            traceback.print_exc()
+            raise
 
     def compute_image_hash(self, image):
         """Compute hash of image to detect duplicates"""
@@ -216,7 +259,7 @@ class YoloAnalysis:
             "statistics": statistics,
             "detections": self.detections.copy(),
             "annotated_image": annotated_base64,
-            "image_hash": image_hash  # Store hash with analysis
+            "image_hash": image_hash
         })
 
         return {
@@ -265,7 +308,7 @@ class YoloAnalysis:
     def clear_history(self):
         """Clear analysis history"""
         self.analysis_history = []
-        self.analyzed_image_hashes.clear()  # Clear hash tracking
+        self.analyzed_image_hashes.clear()
         return {"success": True, "message": "History cleared"}
 
 yolo_analyzer = YoloAnalysis()
