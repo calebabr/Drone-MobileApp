@@ -20,6 +20,9 @@ pillow==11.3.0
 openai==2.21.0
 groq==1.0.0
 
+# Database
+pymongo==4.7.3
+
 # Utilities
 python-dotenv==1.2.1
 requests==2.32.5

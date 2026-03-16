@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+
 class Detection(BaseModel):
     class_name: str
     confidence: float
@@ -17,18 +18,29 @@ class Detection(BaseModel):
     aspectRatio: float
     distance: dict
 
+
 class ImageAnalysisResponse(BaseModel):
     success: bool = Field(..., description="Indicates if the analysis was successful")
-    detections: List[Detection] = Field(..., description="List of detected objects with their statistics")
+    detections: List[Detection] = Field(
+        ..., description="List of detected objects with their statistics"
+    )
     count: int = Field(..., description="Total number of detected objects")
     annotated_image: str = Field(..., description="Base64 encoded annotated image")
     statistics: dict = Field(..., description="Overall image statistics")
     analysis_id: str = Field(..., description="Unique identifier for this analysis")
-    is_duplicate: bool = Field(False, description="Indicates if this was a duplicate analysis")
+    is_duplicate: bool = Field(
+        False, description="Indicates if this was a duplicate analysis"
+    )
+
 
 class MostProminentResponse(BaseModel):
-    success: bool = Field(..., description="Indicates if the retrieval was successful")
-    mostProminentObject: Detection = Field(..., description="Details of the most prominent detected object")
+    success: bool = Field(
+        ..., description="Indicates if the retrieval was successful"
+    )
+    mostProminentObject: Detection = Field(
+        ..., description="Details of the most prominent detected object"
+    )
+
 
 class AnalysisHistoryItem(BaseModel):
     analysis_id: str
@@ -37,20 +49,66 @@ class AnalysisHistoryItem(BaseModel):
     thumbnail: str
     statistics: dict
 
+
 class AnalysisHistoryResponse(BaseModel):
     success: bool
     history: List[AnalysisHistoryItem]
+
 
 class SingleAnalysisResponse(BaseModel):
     success: bool
     analysis: ImageAnalysisResponse
 
+
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User's message")
-    analysis_id: Optional[str] = Field(None, description="Current analysis ID for context")
-    all_analysis_ids: Optional[List[str]] = Field(None, description="All analysis IDs in session")
+    analysis_id: Optional[str] = Field(
+        None, description="Current analysis ID for context"
+    )
+    all_analysis_ids: Optional[List[str]] = Field(
+        None, description="All analysis IDs in session"
+    )
+    session_id: Optional[str] = Field(
+        None, description="Session ID for persistent chat history"
+    )
+
 
 class ChatResponse(BaseModel):
     success: bool
     message: str
     role: str = "assistant"
+
+
+# ─── Session Models ───────────────────────────────────────────────────────────
+
+
+class CreateSessionRequest(BaseModel):
+    username: str = Field(..., description="Username to associate with the session")
+
+
+class CreateSessionResponse(BaseModel):
+    success: bool
+    session_id: str
+    message: str
+
+
+class SessionItem(BaseModel):
+    session_id: str
+    username: str
+    created_at: str
+    updated_at: str
+    analysis_count: int = 0
+    chat_message_count: int = 0
+
+
+class SessionListResponse(BaseModel):
+    success: bool
+    sessions: List[SessionItem]
+
+
+class SessionSummaryResponse(BaseModel):
+    success: bool
+    session_id: str
+    summary: str
+    analysis_count: int = 0
+    chat_message_count: int = 0

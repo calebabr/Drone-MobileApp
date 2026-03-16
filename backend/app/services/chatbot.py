@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class ChatService:
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -71,21 +72,23 @@ politely redirect the conversation back to the image analysis."""
 
         # Current image context
         if analysis_data:
-            detections = analysis_data.get('detections', [])
-            stats = analysis_data.get('statistics', {})
-            class_dist = stats.get('class_distribution', {})
+            detections = analysis_data.get("detections", [])
+            stats = analysis_data.get("statistics", {})
+            class_dist = stats.get("class_distribution", {})
 
-            detection_details = "\n".join([
-                f"  - {d['class_name']}: confidence {d['confidence']:.2%}, "
-                f"area {d['pixelArea']:.0f}px², "
-                f"size {d['width']}x{d['height']}px, "
-                f"score {d['score']:.3f}, "
-                f"position ({d['xCenter']:.0f}, {d['yCenter']:.0f}), "
-                f"aspect ratio {d['aspectRatio']:.2f}, "
-                f"distance (X:{d['distance']['x']:.2f}m, Y:{d['distance']['y']:.2f}m, Z:{d['distance']['z']:.2f}m)"
-                f"{' [distance reliable]' if d['class_name'] == 'person' else ' [distance unreliable - not a person]'}"
-                for d in detections
-            ])
+            detection_details = "\n".join(
+                [
+                    f"  - {d['class_name']}: confidence {d['confidence']:.2%}, "
+                    f"area {d['pixelArea']:.0f}px², "
+                    f"size {d['width']}x{d['height']}px, "
+                    f"score {d['score']:.3f}, "
+                    f"position ({d['xCenter']:.0f}, {d['yCenter']:.0f}), "
+                    f"aspect ratio {d['aspectRatio']:.2f}, "
+                    f"distance (X:{d['distance']['x']:.2f}m, Y:{d['distance']['y']:.2f}m, Z:{d['distance']['z']:.2f}m)"
+                    f"{' [distance reliable]' if d['class_name'] == 'person' else ' [distance unreliable - not a person]'}"
+                    for d in detections
+                ]
+            )
 
             base_prompt += f"""
 
@@ -107,19 +110,23 @@ Individual Detections:
             base_prompt += "\n\nALL ANALYSES IN THIS SESSION:"
             for i, analysis in enumerate(all_analyses):
                 # Skip current image since it's already included above
-                if analysis_data and analysis.get('analysis_id') == analysis_data.get('analysis_id'):
+                if analysis_data and analysis.get("analysis_id") == analysis_data.get(
+                    "analysis_id"
+                ):
                     continue
 
-                stats = analysis.get('statistics', {})
-                class_dist = stats.get('class_distribution', {})
-                detections = analysis.get('detections', [])
+                stats = analysis.get("statistics", {})
+                class_dist = stats.get("class_distribution", {})
+                detections = analysis.get("detections", [])
 
-                detection_summary = "\n".join([
-                    f"    - {d['class_name']}: confidence {d['confidence']:.2%}, "
-                    f"area {d['pixelArea']:.0f}px², "
-                    f"score {d['score']:.3f}"
-                    for d in detections
-                ])
+                detection_summary = "\n".join(
+                    [
+                        f"    - {d['class_name']}: confidence {d['confidence']:.2%}, "
+                        f"area {d['pixelArea']:.0f}px², "
+                        f"score {d['score']:.3f}"
+                        for d in detections
+                    ]
+                )
 
                 base_prompt += f"""
 
@@ -132,7 +139,9 @@ Individual Detections:
   - Detections:
 {detection_summary}"""
 
-            base_prompt += "\n\nYou can answer questions about any of these images or compare them."
+            base_prompt += (
+                "\n\nYou can answer questions about any of these images or compare them."
+            )
 
         return base_prompt
 
@@ -152,16 +161,51 @@ Individual Detections:
 
         assistant_message = response.choices[0].message.content
 
-        self.conversation_history.append({
-            "role": "user",
-            "content": user_message
-        })
-        self.conversation_history.append({
-            "role": "assistant",
-            "content": assistant_message
-        })
+        self.conversation_history.append({"role": "user", "content": user_message})
+        self.conversation_history.append(
+            {"role": "assistant", "content": assistant_message}
+        )
 
         return assistant_message
+
+    def chat_with_history(
+        self, user_message, stored_history, analysis_data=None, all_analyses=None
+    ):
+        """Chat using externally stored history (from MongoDB)."""
+        system_prompt = self.getSystemPrompt(analysis_data, all_analyses)
+
+        messages = [{"role": "system", "content": system_prompt}]
+        messages.extend(stored_history)
+        messages.append({"role": "user", "content": user_message})
+
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7,
+        )
+
+        assistant_message = response.choices[0].message.content
+        return assistant_message
+
+    def generate_summary(self, prompt):
+        """Generate a summary of a session using the AI model."""
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that summarizes drone image analysis sessions concisely.",
+            },
+            {"role": "user", "content": prompt},
+        ]
+
+        response = self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=200,
+            temperature=0.5,
+        )
+
+        return response.choices[0].message.content
 
     def clearHistory(self):
         self.conversation_history = []
