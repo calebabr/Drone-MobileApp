@@ -3,7 +3,6 @@ from datetime import datetime
 from bson import ObjectId
 from app.services.database import get_sessions_collection, get_analytics_collection
 from app.models import (
-    CreateSessionRequest,
     CreateSessionResponse,
     SessionListResponse,
     SessionSummaryResponse,
@@ -18,12 +17,11 @@ summary_chat_service = ChatService()
 
 
 @router.post("/create", response_model=CreateSessionResponse)
-async def create_session(request: CreateSessionRequest):
-    """Create a new session for a user."""
+async def create_session():
+    """Create a new session."""
     sessions_col = get_sessions_collection()
 
     session_doc = {
-        "username": request.username,
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat(),
         "analysis_ids": [],
@@ -37,17 +35,17 @@ async def create_session(request: CreateSessionRequest):
     return CreateSessionResponse(
         success=True,
         session_id=session_id,
-        message=f"Session created for {request.username}",
+        message="New session created",
     )
 
 
-@router.get("/list/{username}", response_model=SessionListResponse)
-async def list_sessions(username: str):
-    """List all sessions for a given username."""
+@router.get("/list", response_model=SessionListResponse)
+async def list_sessions():
+    """List all sessions, sorted by most recent."""
     sessions_col = get_sessions_collection()
     analytics_col = get_analytics_collection()
 
-    cursor = sessions_col.find({"username": username}).sort("updated_at", -1)
+    cursor = sessions_col.find().sort("updated_at", -1)
 
     sessions = []
     for doc in cursor:
@@ -59,7 +57,6 @@ async def list_sessions(username: str):
         sessions.append(
             SessionItem(
                 session_id=str(doc["_id"]),
-                username=doc["username"],
                 created_at=doc["created_at"],
                 updated_at=doc["updated_at"],
                 analysis_count=analysis_count,
@@ -98,12 +95,8 @@ async def get_session_summary(session_id: str):
 
     # Build a context string for the AI
     context_parts = []
-    context_parts.append(
-        f"Session created: {session_doc['created_at']}"
-    )
-    context_parts.append(
-        f"Last updated: {session_doc['updated_at']}"
-    )
+    context_parts.append(f"Session created: {session_doc['created_at']}")
+    context_parts.append(f"Last updated: {session_doc['updated_at']}")
     context_parts.append(f"Total analyses: {len(analyses)}")
 
     for i, analysis in enumerate(analyses):
@@ -113,9 +106,7 @@ async def get_session_summary(session_id: str):
             f"\nAnalysis {i+1} (ID: {analysis.get('analysis_id', 'unknown')}):"
         )
         context_parts.append(f"  - Timestamp: {analysis.get('timestamp', 'unknown')}")
-        context_parts.append(
-            f"  - Objects detected: {analysis.get('count', 0)}"
-        )
+        context_parts.append(f"  - Objects detected: {analysis.get('count', 0)}")
         context_parts.append(f"  - Classes found: {class_dist}")
         context_parts.append(
             f"  - Avg confidence: {stats.get('average_confidence', 0):.2%}"

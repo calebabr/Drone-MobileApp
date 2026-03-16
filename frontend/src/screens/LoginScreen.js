@@ -3,7 +3,6 @@ import {
     StyleSheet,
     Text,
     View,
-    TextInput,
     TouchableOpacity,
     FlatList,
     ActivityIndicator,
@@ -14,63 +13,49 @@ import { COLORS } from '../config/constants';
 import * as api from '../services/api';
 
 export default function LoginScreen({ onSessionStart }) {
-    const [username, setUsername] = useState('');
     const [sessions, setSessions] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [creatingSession, setCreatingSession] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(null);
     const [summaries, setSummaries] = useState({});
-    const [showSessions, setShowSessions] = useState(false);
 
-    const handleLogin = async () => {
-        if (!username.trim()) {
-            Alert.alert('Error', 'Please enter a username.');
-            return;
-        }
+    // Load all sessions on mount
+    useEffect(() => {
+        fetchSessions();
+    }, []);
 
+    const fetchSessions = async () => {
         setLoading(true);
         try {
-            // Fetch existing sessions for this user
-            const result = await api.listSessions(username.trim());
-            if (result.sessions && result.sessions.length > 0) {
-                setSessions(result.sessions);
-                setShowSessions(true);
-            } else {
-                // No existing sessions — create a new one directly
-                await handleNewSession();
-            }
+            const result = await api.listSessions();
+            setSessions(result.sessions || []);
         } catch (error) {
             console.error('Error fetching sessions:', error);
-            // If backend is unreachable, still allow new session creation
-            await handleNewSession();
+            setSessions([]);
         } finally {
             setLoading(false);
         }
     };
 
     const handleNewSession = async () => {
-        if (!username.trim()) {
-            Alert.alert('Error', 'Please enter a username.');
-            return;
-        }
-
-        setLoading(true);
+        setCreatingSession(true);
         try {
-            const result = await api.createSession(username.trim());
-            onSessionStart(username.trim(), result.session_id);
+            const result = await api.createSession();
+            onSessionStart(result.session_id);
         } catch (error) {
             console.error('Error creating session:', error);
             Alert.alert('Error', 'Failed to create session. Make sure your backend is running.');
         } finally {
-            setLoading(false);
+            setCreatingSession(false);
         }
     };
 
     const handleContinueSession = (sessionId) => {
-        onSessionStart(username.trim(), sessionId);
+        onSessionStart(sessionId);
     };
 
     const handleGetSummary = async (sessionId) => {
-        if (summaries[sessionId]) return; // Already fetched
+        if (summaries[sessionId]) return;
 
         setLoadingSummary(sessionId);
         try {
@@ -118,17 +103,26 @@ export default function LoginScreen({ onSessionStart }) {
         );
     };
 
-    const renderSessionItem = ({ item }) => {
+    const formatSessionId = (id) => {
+        if (id.length > 12) {
+            return id.substring(0, 6) + '...' + id.substring(id.length - 6);
+        }
+        return id;
+    };
+
+    const renderSessionItem = ({ item, index }) => {
         const summary = summaries[item.session_id];
         const isLoadingSummary = loadingSummary === item.session_id;
 
         return (
             <View style={styles.sessionCard}>
                 <View style={styles.sessionHeader}>
-                    <Text style={styles.sessionDate}>
-                        {new Date(item.created_at).toLocaleDateString()} {' '}
-                        {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                    <View style={styles.sessionIdRow}>
+                        <Text style={styles.sessionNumber}>#{index + 1}</Text>
+                        <Text style={styles.sessionId}>
+                            ID: {formatSessionId(item.session_id)}
+                        </Text>
+                    </View>
                     <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => handleDeleteSession(item.session_id)}
@@ -137,13 +131,22 @@ export default function LoginScreen({ onSessionStart }) {
                     </TouchableOpacity>
                 </View>
 
+                <Text style={styles.sessionDate}>
+                    Created: {new Date(item.created_at).toLocaleDateString()} {' '}
+                    {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+
                 <View style={styles.sessionStats}>
-                    <Text style={styles.sessionStatText}>
-                        Analyses: {item.analysis_count}
-                    </Text>
-                    <Text style={styles.sessionStatText}>
-                        Messages: {item.chat_message_count}
-                    </Text>
+                    <View style={styles.statBadge}>
+                        <Text style={styles.statBadgeText}>
+                            {item.analysis_count} Analyses
+                        </Text>
+                    </View>
+                    <View style={styles.statBadge}>
+                        <Text style={styles.statBadgeText}>
+                            {item.chat_message_count} Messages
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Summary Section */}
@@ -180,86 +183,60 @@ export default function LoginScreen({ onSessionStart }) {
         );
     };
 
-    if (showSessions) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>Drone Image Analysis</Text>
-                    <Text style={styles.subtitle}>Welcome back, {username}!</Text>
-                </View>
-
-                <View style={styles.sessionListHeader}>
-                    <Text style={styles.sectionTitle}>Your Past Sessions</Text>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => setShowSessions(false)}
-                    >
-                        <Text style={styles.backButtonText}>Back</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <FlatList
-                    data={sessions}
-                    renderItem={renderSessionItem}
-                    keyExtractor={(item) => item.session_id}
-                    contentContainerStyle={styles.sessionList}
-                    ListFooterComponent={
-                        <TouchableOpacity
-                            style={styles.newSessionButton}
-                            onPress={handleNewSession}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color={COLORS.white} />
-                            ) : (
-                                <Text style={styles.newSessionButtonText}>
-                                    + Start New Session
-                                </Text>
-                            )}
-                        </TouchableOpacity>
-                    }
-                />
-            </SafeAreaView>
-        );
-    }
-
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.loginContainer}>
-                <View style={styles.header}>
-                    <Text style={styles.title}>Drone Image Analysis</Text>
-                    <Text style={styles.subtitle}>YOLO Object Detection</Text>
-                </View>
+            <View style={styles.header}>
+                <Text style={styles.title}>Drone Image Analysis</Text>
+                <Text style={styles.subtitle}>YOLO Object Detection</Text>
+            </View>
 
-                <View style={styles.loginForm}>
-                    <Text style={styles.loginLabel}>Enter your username</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Username"
-                        value={username}
-                        onChangeText={setUsername}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        returnKeyType="go"
-                        onSubmitEditing={handleLogin}
-                    />
-
+            <View style={styles.content}>
+                <View style={styles.topRow}>
+                    <Text style={styles.sectionTitle}>
+                        {sessions.length > 0 ? 'Your Sessions' : 'No Sessions Yet'}
+                    </Text>
                     <TouchableOpacity
-                        style={[styles.loginButton, !username.trim() && styles.loginButtonDisabled]}
-                        onPress={handleLogin}
-                        disabled={loading || !username.trim()}
+                        style={styles.refreshButton}
+                        onPress={fetchSessions}
                     >
-                        {loading ? (
-                            <ActivityIndicator color={COLORS.white} />
-                        ) : (
-                            <Text style={styles.loginButtonText}>Login</Text>
-                        )}
+                        <Text style={styles.refreshButtonText}>Refresh</Text>
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.infoText}>
-                    Sessions are stored by username. Enter a username to view past sessions or start a new one.
-                </Text>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
+                        <Text style={styles.loadingText}>Loading sessions...</Text>
+                    </View>
+                ) : sessions.length > 0 ? (
+                    <FlatList
+                        data={sessions}
+                        renderItem={renderSessionItem}
+                        keyExtractor={(item) => item.session_id}
+                        contentContainerStyle={styles.sessionList}
+                        showsVerticalScrollIndicator={false}
+                    />
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>
+                            No sessions found. Tap the button below to start your first session!
+                        </Text>
+                    </View>
+                )}
+            </View>
+
+            <View style={styles.footer}>
+                <TouchableOpacity
+                    style={styles.newSessionButton}
+                    onPress={handleNewSession}
+                    disabled={creatingSession}
+                >
+                    {creatingSession ? (
+                        <ActivityIndicator color={COLORS.white} />
+                    ) : (
+                        <Text style={styles.newSessionButtonText}>+ New Session</Text>
+                    )}
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
@@ -270,124 +247,113 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.background,
     },
-    loginContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 30,
-    },
     header: {
         alignItems: 'center',
-        marginBottom: 40,
         backgroundColor: COLORS.primary,
-        padding: 30,
-        borderRadius: 15,
+        padding: 20,
+        paddingTop: 50,
     },
     title: {
-        fontSize: 28,
+        fontSize: 26,
         fontWeight: 'bold',
         color: COLORS.white,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 15,
         color: COLORS.white,
-        marginTop: 5,
+        marginTop: 4,
         opacity: 0.9,
     },
-    loginForm: {
-        backgroundColor: COLORS.white,
-        padding: 25,
-        borderRadius: 15,
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+    content: {
+        flex: 1,
+        paddingHorizontal: 15,
+        paddingTop: 15,
     },
-    loginLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: COLORS.text,
-        marginBottom: 10,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        padding: 15,
-        fontSize: 16,
-        backgroundColor: '#fafafa',
-        marginBottom: 15,
-    },
-    loginButton: {
-        backgroundColor: COLORS.primary,
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    loginButtonDisabled: {
-        backgroundColor: '#ccc',
-    },
-    loginButtonText: {
-        color: COLORS.white,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    infoText: {
-        textAlign: 'center',
-        color: COLORS.textLight,
-        fontSize: 13,
-        marginTop: 20,
-        lineHeight: 18,
-    },
-    // Session List Styles
-    sessionListHeader: {
+    topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        marginBottom: 12,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: COLORS.text,
     },
-    backButton: {
-        backgroundColor: COLORS.primaryDark,
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        borderRadius: 8,
+    refreshButton: {
+        backgroundColor: COLORS.lightBlue,
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: COLORS.primary,
     },
-    backButtonText: {
-        color: COLORS.white,
-        fontWeight: 'bold',
-        fontSize: 14,
+    refreshButtonText: {
+        color: COLORS.primary,
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+    },
+    loadingText: {
+        color: COLORS.textLight,
+        fontSize: 15,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+    },
+    emptyText: {
+        fontSize: 15,
+        color: COLORS.textLight,
+        textAlign: 'center',
+        lineHeight: 22,
     },
     sessionList: {
-        padding: 15,
-        paddingBottom: 30,
+        paddingBottom: 10,
     },
     sessionCard: {
         backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 15,
-        marginBottom: 15,
+        marginBottom: 12,
         elevation: 3,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
     },
     sessionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
+    },
+    sessionIdRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    sessionNumber: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+    },
+    sessionId: {
+        fontSize: 13,
+        color: COLORS.textLight,
+        fontFamily: 'monospace',
     },
     sessionDate: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: COLORS.text,
+        fontSize: 13,
+        color: COLORS.textSecondary,
+        marginBottom: 8,
     },
     deleteButton: {
         backgroundColor: COLORS.error,
@@ -402,12 +368,19 @@ const styles = StyleSheet.create({
     },
     sessionStats: {
         flexDirection: 'row',
-        gap: 20,
+        gap: 10,
         marginBottom: 10,
     },
-    sessionStatText: {
-        fontSize: 13,
-        color: COLORS.textSecondary,
+    statBadge: {
+        backgroundColor: COLORS.lightBlue,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    statBadgeText: {
+        fontSize: 12,
+        color: COLORS.primaryDark,
+        fontWeight: '600',
     },
     summaryButton: {
         backgroundColor: COLORS.lightBlue,
@@ -462,17 +435,25 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
     },
+    footer: {
+        padding: 15,
+        paddingBottom: 25,
+        backgroundColor: COLORS.background,
+    },
     newSessionButton: {
         backgroundColor: COLORS.primary,
-        padding: 15,
-        borderRadius: 10,
+        padding: 16,
+        borderRadius: 12,
         alignItems: 'center',
-        marginTop: 5,
-        marginBottom: 20,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     newSessionButtonText: {
         color: COLORS.white,
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: 'bold',
     },
 });

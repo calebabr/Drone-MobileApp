@@ -4,17 +4,14 @@ import MainScreen from './src/screens/MainScreen';
 
 export default function App() {
     const [currentScreen, setCurrentScreen] = useState('login');
-    const [username, setUsername] = useState(null);
     const [sessionId, setSessionId] = useState(null);
 
-    const handleSessionStart = (user, sessId) => {
-        setUsername(user);
+    const handleSessionStart = (sessId) => {
         setSessionId(sessId);
         setCurrentScreen('main');
     };
 
     const handleLogout = () => {
-        setUsername(null);
         setSessionId(null);
         setCurrentScreen('login');
     };
@@ -25,7 +22,6 @@ export default function App() {
 
     return (
         <MainScreen
-            username={username}
             sessionId={sessionId}
             onLogout={handleLogout}
         />

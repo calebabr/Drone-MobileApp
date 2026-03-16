@@ -12,7 +12,7 @@ import * as api from '../services/api';
 import { commonStyles } from '../styles/commonStyles';
 import { COLORS } from '../config/constants';
 
-export default function MainScreen({ username, sessionId, onLogout }) {
+export default function MainScreen({ sessionId, onLogout }) {
     const [selectedImage, setSelectedImage] = useState(null);
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -146,8 +146,14 @@ export default function MainScreen({ username, sessionId, onLogout }) {
         ? `data:image/jpeg;base64,${results.annotated_image}`
         : selectedImage;
 
-    // Extract all analysis IDs from history
     const allAnalysisIds = analysisHistory.map((item) => item.analysis_id);
+
+    const formatSessionId = (id) => {
+        if (id && id.length > 12) {
+            return id.substring(0, 6) + '...' + id.substring(id.length - 6);
+        }
+        return id || '';
+    };
 
     return (
         <ScrollView style={commonStyles.container}>
@@ -155,7 +161,7 @@ export default function MainScreen({ username, sessionId, onLogout }) {
                 <Header />
                 <View style={styles.sessionBar}>
                     <Text style={styles.sessionText}>
-                        {username} — Session Active
+                        Session: {formatSessionId(sessionId)}
                     </Text>
                     <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
                         <Text style={styles.logoutButtonText}>Logout</Text>
@@ -211,9 +217,7 @@ export default function MainScreen({ username, sessionId, onLogout }) {
 }
 
 const styles = StyleSheet.create({
-    headerContainer: {
-        // Wrapper to keep header and session bar together
-    },
+    headerContainer: {},
     sessionBar: {
         flexDirection: 'row',
         justifyContent: 'space-between',

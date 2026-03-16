@@ -3,15 +3,13 @@ import { BACKEND_URL } from '../config/constants';
 
 // ─── Session APIs ────────────────────────────────────────────────────────────
 
-export const createSession = async (username) => {
-    const response = await axios.post(`${BACKEND_URL}/sessions/create`, {
-        username,
-    });
+export const createSession = async () => {
+    const response = await axios.post(`${BACKEND_URL}/sessions/create`);
     return response.data;
 };
 
-export const listSessions = async (username) => {
-    const response = await axios.get(`${BACKEND_URL}/sessions/list/${username}`);
+export const listSessions = async () => {
+    const response = await axios.get(`${BACKEND_URL}/sessions/list`);
     return response.data;
 };
 

@@ -82,10 +82,6 @@ class ChatResponse(BaseModel):
 # ─── Session Models ───────────────────────────────────────────────────────────
 
 
-class CreateSessionRequest(BaseModel):
-    username: str = Field(..., description="Username to associate with the session")
-
-
 class CreateSessionResponse(BaseModel):
     success: bool
     session_id: str
@@ -94,7 +90,6 @@ class CreateSessionResponse(BaseModel):
 
 class SessionItem(BaseModel):
     session_id: str
-    username: str
     created_at: str
     updated_at: str
     analysis_count: int = 0
