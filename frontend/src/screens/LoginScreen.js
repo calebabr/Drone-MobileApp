@@ -113,12 +113,14 @@ export default function LoginScreen({ onSessionStart }) {
     const renderSessionItem = ({ item, index }) => {
         const summary = summaries[item.session_id];
         const isLoadingSummary = loadingSummary === item.session_id;
+        // Oldest session = #1, newest = highest number
+        const sessionNumber = sessions.length - index;
 
         return (
             <View style={styles.sessionCard}>
                 <View style={styles.sessionHeader}>
                     <View style={styles.sessionIdRow}>
-                        <Text style={styles.sessionNumber}>#{index + 1}</Text>
+                        <Text style={styles.sessionNumber}>#{sessionNumber}</Text>
                         <Text style={styles.sessionId}>
                             ID: {formatSessionId(item.session_id)}
                         </Text>
@@ -155,7 +157,7 @@ export default function LoginScreen({ onSessionStart }) {
                         style={styles.summaryButton}
                         onPress={() => handleGetSummary(item.session_id)}
                     >
-                        <Text style={styles.summaryButtonText}>Generate AI Summary</Text>
+                        <Text style={styles.summaryButtonText}>Summary</Text>
                     </TouchableOpacity>
                 )}
 
@@ -168,7 +170,7 @@ export default function LoginScreen({ onSessionStart }) {
 
                 {summary && (
                     <View style={styles.summaryContainer}>
-                        <Text style={styles.summaryLabel}>AI Summary:</Text>
+                        <Text style={styles.summaryLabel}>Summary:</Text>
                         <Text style={styles.summaryText}>{summary}</Text>
                     </View>
                 )}
