@@ -3,29 +3,29 @@ print("LOADING yoloAnalysis.py MODULE - STEP 1")
 print("=" * 80)
 
 import cv2
-print("✅ cv2 imported")
+print("cv2 imported")
 import numpy as np
-print("✅ numpy imported")
+print("numpy imported")
 from ultralytics import YOLO
-print("✅ YOLO imported")
+print("YOLO imported")
 import pickle
-print("✅ pickle imported")
+print("pickle imported")
 from PIL import Image
-print("✅ PIL imported")
+print(" PIL imported")
 import os
-print("✅ os imported")
+print(" os imported")
 import joblib
-print("✅ joblib imported")
+print(" joblib imported")
 import pandas as pd
-print("✅ pandas imported")
+print(" pandas imported")
 import base64
-print("✅ base64 imported")
+print(" base64 imported")
 from datetime import datetime
-print("✅ datetime imported")
+print(" datetime imported")
 from collections import Counter
-print("✅ Counter imported")
+print(" Counter imported")
 import hashlib
-print("✅ hashlib imported")
+print(" hashlib imported")
 
 print("=" * 80)
 print("ALL IMPORTS SUCCESSFUL - STEP 2")
@@ -60,13 +60,13 @@ class YoloAnalysis:
                 file_size = os.path.getsize(YOLO_MODEL_PATH)
                 print(f"YOLO file size: {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)")
                 if file_size < 1000:
-                    print("⚠️ WARNING: File is very small - might be a Git LFS pointer!")
+                    print(" WARNING: File is very small - might be a Git LFS pointer!")
             else:
-                print("❌ ERROR: YOLO model file not found!")
+                print(" ERROR: YOLO model file not found!")
                 
             print("Loading YOLO model... - STEP 4")
             self.YOLOmodel = YOLO(YOLO_MODEL_PATH)
-            print("✅ YOLO model loaded successfully! - STEP 5")
+            print(" YOLO model loaded successfully! - STEP 5")
 
             # Distance Model - Use lighter version
             DISTANCE_MODEL_PATH = os.path.join(BASE_DIR, "data", "distance_model_light.pkl")
@@ -77,13 +77,13 @@ class YoloAnalysis:
                 file_size = os.path.getsize(DISTANCE_MODEL_PATH)
                 print(f"Distance model file size: {file_size:,} bytes ({file_size / (1024*1024):.2f} MB)")
                 if file_size < 1000:
-                    print("⚠️ WARNING: File is very small - might be a Git LFS pointer!")
+                    print(" WARNING: File is very small - might be a Git LFS pointer!")
             else:
-                print("❌ ERROR: Distance model file not found!")
+                print(" ERROR: Distance model file not found!")
                 
             print("Loading distance model... - STEP 6")
             self.distance_model = joblib.load(DISTANCE_MODEL_PATH)
-            print("✅ Distance model loaded successfully! - STEP 7")
+            print(" Distance model loaded successfully! - STEP 7")
 
             self.detections = []
             self.analysis_history = []
@@ -95,7 +95,7 @@ class YoloAnalysis:
             
         except Exception as e:
             print("=" * 80)
-            print(f"❌ EXCEPTION in YoloAnalysis.__init__: {e}")
+            print(f" EXCEPTION in YoloAnalysis.__init__: {e}")
             print("=" * 80)
             import traceback
             traceback.print_exc()
