@@ -18,6 +18,7 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
     const [creatingSession, setCreatingSession] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(null);
     const [summaries, setSummaries] = useState({});
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     // Load all sessions on mount
     useEffect(() => {
@@ -25,15 +26,19 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
     }, []);
 
     const fetchSessions = async () => {
-        setLoading(true);
+        // Only show full loading spinner on first load
+        if (!hasLoadedOnce) {
+            setLoading(true);
+        }
         try {
             const result = await api.listSessions();
             setSessions(result.sessions || []);
         } catch (error) {
             console.error('Error fetching sessions:', error);
-            setSessions([]);
+            if (!hasLoadedOnce) setSessions([]);
         } finally {
             setLoading(false);
+            setHasLoadedOnce(true);
         }
     };
 
@@ -449,7 +454,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     newSessionButton: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: '#5C6BC0',
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',
@@ -465,7 +470,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     universalChatButton: {
-        backgroundColor: COLORS.success,
+        backgroundColor: '#00897B',
         padding: 14,
         borderRadius: 12,
         alignItems: 'center',
