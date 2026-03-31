@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
         lineHeight: 18,
     },
     continueButton: {
-        backgroundColor: COLORS.success,
+        backgroundColor: COLORS.primary,
         padding: 12,
         borderRadius: 8,
         alignItems: 'center',
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.background,
     },
     newSessionButton: {
-        backgroundColor: '#5C6BC0',
+        backgroundColor: '#DD550C',
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     universalChatButton: {
-        backgroundColor: '#00897B',
+        backgroundColor: '#1B4D8E',
         padding: 14,
         borderRadius: 12,
         alignItems: 'center',
