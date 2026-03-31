@@ -45,7 +45,7 @@ async def list_sessions():
     sessions_col = get_sessions_collection()
     analytics_col = get_analytics_collection()
 
-    cursor = sessions_col.find().sort("updated_at", -1)
+    cursor = sessions_col.find({"_type": {"$exists": False}}).sort("updated_at", -1)
 
     sessions = []
     for doc in cursor:
