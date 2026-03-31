@@ -22,7 +22,7 @@ export default function HistoryDetailModal({ visible, analysis, onClose, onOpenC
                                 style={styles.chatButton}
                                 onPress={() => onOpenChat(analysis.analysis_id)}
                             >
-                                <Text style={styles.chatButtonText}>Ask AI</Text>
+                                <Text style={styles.chatButtonText}>Analysis Chat</Text>
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity style={styles.closeButton} onPress={onClose}>

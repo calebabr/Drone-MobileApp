@@ -12,7 +12,7 @@ export default function ResultsView({ results, onOpenChat }) {
         <View style={styles.titleRow}>
             <Text style={styles.title}>Detection Results</Text>
             <TouchableOpacity style={styles.chatButton} onPress={onOpenChat}>
-            <Text style={styles.chatButtonText}>Ask AI</Text>
+            <Text style={styles.chatButtonText}>Analysis Chat</Text>
             </TouchableOpacity>
         </View>
 

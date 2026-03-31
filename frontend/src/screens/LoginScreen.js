@@ -248,7 +248,7 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
                     style={styles.universalChatButton}
                     onPress={onOpenUniversalChat}
                 >
-                    <Text style={styles.universalChatButtonText}>Universal Assistant</Text>
+                    <Text style={styles.universalChatButtonText}>Universal Session Chat</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

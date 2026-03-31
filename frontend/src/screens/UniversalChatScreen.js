@@ -128,7 +128,7 @@ export default function UniversalChatScreen({ onBack }) {
                         <TouchableOpacity style={styles.backButton} onPress={onBack}>
                             <Text style={styles.backButtonText}>Back</Text>
                         </TouchableOpacity>
-                        <Text style={styles.title}>Universal Assistant</Text>
+                        <Text style={styles.title}>Universal Session Chat</Text>
                     </View>
                     <TouchableOpacity style={styles.clearButton} onPress={handleClearHistory}>
                         <Text style={styles.clearButtonText}>Clear</Text>

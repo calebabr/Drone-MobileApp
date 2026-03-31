@@ -113,7 +113,7 @@ export default function ChatModal({ visible, onClose, analysisId, allAnalysisIds
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <View style={styles.header}>
-                    <Text style={styles.title}>AI Assistant</Text>
+                    <Text style={styles.title}>Session Chat</Text>
                     <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>

@@ -175,7 +175,7 @@ export default function MainScreen({ sessionId, onLogout }) {
                             style={styles.sessionChatButton}
                             onPress={() => openChat(null)}
                         >
-                            <Text style={styles.sessionChatButtonText}>Chat</Text>
+                            <Text style={styles.sessionChatButtonText}>Session Chat</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
                             <Text style={styles.logoutButtonText}>Logout</Text>
