@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -11,27 +11,66 @@ import {
     Platform,
     ActivityIndicator,
 } from 'react-native';
-import { sendChatMessage } from '../services/api';
+import { sendChatMessage, getChatHistory } from '../services/api';
 import { COLORS } from '../config/constants';
-import { useState } from 'react';
 
 export default function ChatModal({ visible, onClose, analysisId, allAnalysisIds, messages, setMessages, sessionId }) {
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
     const scrollViewRef = useRef();
 
     useEffect(() => {
-        if (visible && messages.length === 0) {
+        if (visible && !historyLoaded && sessionId) {
+            loadChatHistory();
+        } else if (visible && !sessionId && messages.length === 0) {
             setMessages([
                 {
                     role: 'assistant',
                     content: analysisId
-                        ? `Hello! I have context about your current image and ${allAnalysisIds?.length > 1 ? `${allAnalysisIds.length} other analyzed images` : 'all analyzed images'} in this session. What would you like to know?`
+                        ? `Hello! I have context about your current image and ${allAnalysisIds?.length > 1 ? `${allAnalysisIds.length} total analyzed images` : 'all analyzed images'} in this session. What would you like to know?`
                         : 'Hello! Analyze an image first and I can answer questions about the results.',
                 },
             ]);
         }
     }, [visible]);
+
+    const loadChatHistory = async () => {
+        try {
+            const result = await getChatHistory(sessionId);
+            const history = result.chat_history || [];
+
+            if (history.length > 0) {
+                // Show persisted history + a greeting
+                const greeting = {
+                    role: 'assistant',
+                    content: analysisId
+                        ? `Welcome back! I have context about your current image and ${allAnalysisIds?.length || 0} total analyzed images in this session. Here's our conversation history.`
+                        : `Welcome back! I have context about ${allAnalysisIds?.length || 0} analyzed images in this session. What would you like to know?`,
+                };
+                setMessages([greeting, ...history]);
+            } else {
+                setMessages([
+                    {
+                        role: 'assistant',
+                        content: analysisId
+                            ? `Hello! I have context about your current image and ${allAnalysisIds?.length > 1 ? `${allAnalysisIds.length} total analyzed images` : 'all analyzed images'} in this session. What would you like to know?`
+                            : 'Hello! Analyze an image first and I can answer questions about the results.',
+                    },
+                ]);
+            }
+            setHistoryLoaded(true);
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+            setMessages([
+                {
+                    role: 'assistant',
+                    content: 'Hello! What would you like to know about your analysis?',
+                },
+            ]);
+            setHistoryLoaded(true);
+        }
+    };
 
     const handleSend = async () => {
         if (!inputText.trim() || loading) return;

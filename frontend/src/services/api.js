@@ -77,6 +77,8 @@ export const clearAnalysisHistory = async (sessionId = null) => {
     return response.data;
 };
 
+// ─── Chat APIs ───────────────────────────────────────────────────────────────
+
 export const sendChatMessage = async (message, analysisId = null, allAnalysisIds = null, sessionId = null) => {
     const response = await axios.post(`${BACKEND_URL}/chat`, {
         message,
@@ -87,11 +89,35 @@ export const sendChatMessage = async (message, analysisId = null, allAnalysisIds
     return response.data;
 };
 
+export const getChatHistory = async (sessionId) => {
+    const response = await axios.get(`${BACKEND_URL}/chat/history/${sessionId}`);
+    return response.data;
+};
+
 export const clearChatHistory = async (sessionId = null) => {
     let url = `${BACKEND_URL}/chat/history`;
     if (sessionId) {
         url += `?session_id=${sessionId}`;
     }
     const response = await axios.delete(url);
+    return response.data;
+};
+
+// ─── Universal Chat APIs ─────────────────────────────────────────────────────
+
+export const sendUniversalChatMessage = async (message) => {
+    const response = await axios.post(`${BACKEND_URL}/chat/universal`, {
+        message,
+    });
+    return response.data;
+};
+
+export const getUniversalChatHistory = async () => {
+    const response = await axios.get(`${BACKEND_URL}/chat/history/universal/all`);
+    return response.data;
+};
+
+export const clearUniversalChatHistory = async () => {
+    const response = await axios.delete(`${BACKEND_URL}/chat/history/universal`);
     return response.data;
 };

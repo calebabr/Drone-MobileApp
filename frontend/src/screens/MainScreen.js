@@ -22,8 +22,9 @@ export default function MainScreen({ sessionId, onLogout }) {
     const [showChat, setShowChat] = useState(false);
     const [chatMessages, setChatMessages] = useState([]);
     const [hasAnalyzed, setHasAnalyzed] = useState(false);
+    // Track which analysis the chat is focused on
+    const [chatAnalysisId, setChatAnalysisId] = useState(null);
 
-    // On mount, fetch existing history for this session
     useEffect(() => {
         if (sessionId) {
             fetchAnalysisHistory();
@@ -142,6 +143,12 @@ export default function MainScreen({ sessionId, onLogout }) {
         );
     };
 
+    const openChat = (analysisId = null) => {
+        setChatAnalysisId(analysisId || results?.analysis_id || null);
+        setChatMessages([]);
+        setShowChat(true);
+    };
+
     const imageUri = results?.annotated_image
         ? `data:image/jpeg;base64,${results.annotated_image}`
         : selectedImage;
@@ -163,9 +170,17 @@ export default function MainScreen({ sessionId, onLogout }) {
                     <Text style={styles.sessionText}>
                         Session: {formatSessionId(sessionId)}
                     </Text>
-                    <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-                        <Text style={styles.logoutButtonText}>Logout</Text>
-                    </TouchableOpacity>
+                    <View style={styles.sessionBarButtons}>
+                        <TouchableOpacity
+                            style={styles.sessionChatButton}
+                            onPress={() => openChat(null)}
+                        >
+                            <Text style={styles.sessionChatButtonText}>Chat</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+                            <Text style={styles.logoutButtonText}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
 
@@ -185,7 +200,7 @@ export default function MainScreen({ sessionId, onLogout }) {
             {results && (
                 <ResultsView
                     results={results}
-                    onOpenChat={() => setShowChat(true)}
+                    onOpenChat={() => openChat(results?.analysis_id)}
                 />
             )}
 
@@ -201,12 +216,16 @@ export default function MainScreen({ sessionId, onLogout }) {
                 visible={!!selectedHistoryItem}
                 analysis={selectedHistoryItem}
                 onClose={() => setSelectedHistoryItem(null)}
+                onOpenChat={(analysisId) => {
+                    setSelectedHistoryItem(null);
+                    openChat(analysisId);
+                }}
             />
 
             <ChatModal
                 visible={showChat}
                 onClose={() => setShowChat(false)}
-                analysisId={results?.analysis_id}
+                analysisId={chatAnalysisId}
                 allAnalysisIds={allAnalysisIds}
                 messages={chatMessages}
                 setMessages={setChatMessages}
@@ -231,6 +250,21 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '500',
         opacity: 0.9,
+    },
+    sessionBarButtons: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    sessionChatButton: {
+        backgroundColor: COLORS.success,
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+    sessionChatButtonText: {
+        color: COLORS.white,
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     logoutButton: {
         backgroundColor: 'rgba(255,255,255,0.2)',

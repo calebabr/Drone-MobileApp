@@ -4,46 +4,53 @@ import DetailedStatistics from './DetailedStatistics';
 import DetectionCard from './DetectionCard';
 import { COLORS } from '../config/constants';
 
-export default function HistoryDetailModal({ visible, analysis, onClose }) {
+export default function HistoryDetailModal({ visible, analysis, onClose, onOpenChat }) {
     if (!analysis) return null;
 
     return (
         <Modal
-        visible={visible}
-        animationType="slide"
-        onRequestClose={onClose}
+            visible={visible}
+            animationType="slide"
+            onRequestClose={onClose}
         >
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-            <Text style={styles.title}>Analysis Details</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-            </View>
+            <ScrollView style={styles.container}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>Analysis Details</Text>
+                    <View style={styles.headerButtons}>
+                        {onOpenChat && (
+                            <TouchableOpacity
+                                style={styles.chatButton}
+                                onPress={() => onOpenChat(analysis.analysis_id)}
+                            >
+                                <Text style={styles.chatButtonText}>Ask AI</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                            <Text style={styles.closeButtonText}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
-            <View style={styles.content}>
-            {/* Annotated Image */}
-            <View style={styles.imageContainer}>
-                <Image
-                source={{
-                    uri: `data:image/jpeg;base64,${analysis.annotated_image}`,
-                }}
-                style={styles.image}
-                />
-            </View>
+                <View style={styles.content}>
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={{
+                                uri: `data:image/jpeg;base64,${analysis.annotated_image}`,
+                            }}
+                            style={styles.image}
+                        />
+                    </View>
 
-            {/* Statistics */}
-            <DetailedStatistics statistics={analysis.statistics} />
+                    <DetailedStatistics statistics={analysis.statistics} />
 
-            {/* Detections */}
-            <View style={styles.detectionsContainer}>
-                <Text style={styles.detectionsTitle}>Detected Objects:</Text>
-                {analysis.detections.map((detection, index) => (
-                <DetectionCard key={index} detection={detection} index={index} />
-                ))}
-            </View>
-            </View>
-        </ScrollView>
+                    <View style={styles.detectionsContainer}>
+                        <Text style={styles.detectionsTitle}>Detected Objects:</Text>
+                        {analysis.detections.map((detection, index) => (
+                            <DetectionCard key={index} detection={detection} index={index} />
+                        ))}
+                    </View>
+                </View>
+            </ScrollView>
         </Modal>
     );
 }
@@ -65,6 +72,21 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: COLORS.white,
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    chatButton: {
+        backgroundColor: COLORS.success,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    chatButtonText: {
+        color: COLORS.white,
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     closeButton: {
         backgroundColor: COLORS.primaryDark,

@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 import numpy as np
 import cv2
+import base64
 
 from app.services.yoloAnalysis import yolo_analyzer
 from app.services.database import get_sessions_collection, get_analytics_collection
@@ -18,25 +19,34 @@ from app.models import (
 router = APIRouter()
 
 
+def generate_thumbnail_base64(annotated_image_base64):
+    """Generate a small thumbnail from a base64 annotated image."""
+    try:
+        img_bytes = base64.b64decode(annotated_image_base64)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        if img is not None:
+            thumbnail = cv2.resize(img, (200, 150))
+            _, buffer = cv2.imencode('.jpg', thumbnail)
+            return base64.b64encode(buffer).decode('utf-8')
+    except Exception as e:
+        print(f"Warning: Could not generate thumbnail: {e}")
+    return ""
+
+
 @router.post("/analyze-image", response_model=ImageAnalysisResponse)
 async def analyze_image(
     file: UploadFile = File(...),
     session_id: Optional[str] = Query(None, description="Session ID to associate analysis with"),
 ):
-    """
-    Analyze an uploaded image, convert to OpenCV format and return detailed analysis
-    with annotated image and statistics. Optionally associate with a MongoDB session.
-    """
     imageBytes = await file.read()
 
-    # Image to OpenCV
     npImage = np.frombuffer(imageBytes, np.uint8)
     cvImage = cv2.imdecode(npImage, cv2.IMREAD_COLOR)
 
     if cvImage is None:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    # Pass OpenCV image to service
     imgAnalysis = yolo_analyzer.extractStatistics(cvImage)
     yolo_analyzer.detections = imgAnalysis["detections"]
 
@@ -46,7 +56,9 @@ async def analyze_image(
             analytics_col = get_analytics_collection()
             sessions_col = get_sessions_collection()
 
-            # Save analysis to analytics collection
+            # Generate thumbnail for history display
+            thumbnail = generate_thumbnail_base64(imgAnalysis["annotated_image"])
+
             analytics_doc = {
                 "session_id": session_id,
                 "analysis_id": imgAnalysis["analysis_id"],
@@ -54,12 +66,12 @@ async def analyze_image(
                 "detections": imgAnalysis["detections"],
                 "count": imgAnalysis["count"],
                 "annotated_image": imgAnalysis["annotated_image"],
+                "thumbnail": thumbnail,
                 "statistics": imgAnalysis["statistics"],
                 "is_duplicate": imgAnalysis.get("is_duplicate", False),
             }
             analytics_col.insert_one(analytics_doc)
 
-            # Update session with analysis reference
             sessions_col.update_one(
                 {"_id": ObjectId(session_id)},
                 {
@@ -75,17 +87,12 @@ async def analyze_image(
 
 @router.get("/most-prominent-object", response_model=MostProminentResponse)
 async def get_most_prominent_object():
-    """
-    Retrieve the most prominent detected object from the last analyzed image.
-    """
     if not yolo_analyzer.detections:
         raise HTTPException(
             status_code=404,
             detail="No detections available. Please analyze an image first.",
         )
-
     mostProminent = yolo_analyzer.getMostProminent(yolo_analyzer.detections)
-
     return mostProminent
 
 
@@ -93,10 +100,6 @@ async def get_most_prominent_object():
 async def get_analysis_history(
     session_id: Optional[str] = Query(None, description="Session ID to get history for"),
 ):
-    """
-    Retrieve the history of all image analyses. If session_id is provided,
-    fetches from MongoDB; otherwise uses in-memory history.
-    """
     if session_id:
         try:
             analytics_col = get_analytics_collection()
@@ -106,19 +109,17 @@ async def get_analysis_history(
 
             history = []
             for item in analyses:
-                # Generate a thumbnail from the annotated image if not present
                 thumbnail = item.get("thumbnail", "")
+                # If no thumbnail stored, generate one from annotated image
                 if not thumbnail and item.get("annotated_image"):
-                    # Use first 100 chars as a placeholder — the frontend
-                    # already handles base64 thumbnails
-                    thumbnail = item["annotated_image"][:200]
+                    thumbnail = generate_thumbnail_base64(item["annotated_image"])
 
                 history.append(
                     {
                         "analysis_id": item["analysis_id"],
                         "timestamp": item.get("timestamp", ""),
                         "count": item.get("count", 0),
-                        "thumbnail": item.get("thumbnail", thumbnail),
+                        "thumbnail": thumbnail,
                         "statistics": item.get("statistics", {}),
                     }
                 )
@@ -127,7 +128,6 @@ async def get_analysis_history(
         except Exception as e:
             print(f"Warning: MongoDB history fetch failed: {e}")
 
-    # Fallback to in-memory history
     history = yolo_analyzer.get_history()
     return {"success": True, "history": history}
 
@@ -137,9 +137,6 @@ async def get_analysis_by_id(
     analysis_id: str,
     session_id: Optional[str] = Query(None, description="Session ID"),
 ):
-    """
-    Retrieve a specific analysis by its ID. Checks MongoDB first if session_id provided.
-    """
     if session_id:
         try:
             analytics_col = get_analytics_collection()
@@ -162,7 +159,6 @@ async def get_analysis_by_id(
         except Exception as e:
             print(f"Warning: MongoDB analysis fetch failed: {e}")
 
-    # Fallback to in-memory
     analysis = yolo_analyzer.get_analysis_by_id(analysis_id)
 
     if analysis is None:
@@ -177,9 +173,6 @@ async def get_analysis_by_id(
 async def clear_analysis_history(
     session_id: Optional[str] = Query(None, description="Session ID"),
 ):
-    """
-    Clear all analysis history. If session_id is provided, clears from MongoDB too.
-    """
     if session_id:
         try:
             analytics_col = get_analytics_collection()

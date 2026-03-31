@@ -12,7 +12,7 @@ import {
 import { COLORS } from '../config/constants';
 import * as api from '../services/api';
 
-export default function LoginScreen({ onSessionStart }) {
+export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [creatingSession, setCreatingSession] = useState(false);
@@ -239,6 +239,12 @@ export default function LoginScreen({ onSessionStart }) {
                         <Text style={styles.newSessionButtonText}>+ New Session</Text>
                     )}
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.universalChatButton}
+                    onPress={onOpenUniversalChat}
+                >
+                    <Text style={styles.universalChatButtonText}>Universal Assistant</Text>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
@@ -456,6 +462,23 @@ const styles = StyleSheet.create({
     newSessionButtonText: {
         color: COLORS.white,
         fontSize: 17,
+        fontWeight: 'bold',
+    },
+    universalChatButton: {
+        backgroundColor: COLORS.success,
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 10,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    universalChatButtonText: {
+        color: COLORS.white,
+        fontSize: 16,
         fontWeight: 'bold',
     },
 });

@@ -79,6 +79,10 @@ class ChatResponse(BaseModel):
     role: str = "assistant"
 
 
+class UniversalChatRequest(BaseModel):
+    message: str = Field(..., description="User's message for universal chat")
+
+
 # ─── Session Models ───────────────────────────────────────────────────────────
 
 
