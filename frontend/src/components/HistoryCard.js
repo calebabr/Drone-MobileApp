@@ -2,59 +2,22 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { COLORS } from '../config/constants';
 
-/**
- * Build a short human-readable summary from the class_distribution object.
- * Example input:  { "person": 3, "car": 2, "tree": 1 }
- * Example output: "3 persons, 2 cars, 1 tree"
- */
-function buildSummary(statistics) {
-    const dist = statistics?.class_distribution;
-    if (!dist || Object.keys(dist).length === 0) {
-        return 'No objects detected';
-    }
-
-    // Sort classes by count descending so the most common appear first
-    const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
-
-    const parts = sorted.map(([className, count]) => {
-        // Simple pluralisation: add "s" when count > 1
-        // Handle common edge-cases (person -> people, bus -> buses)
-        let label = className;
-        if (count > 1) {
-            if (className.toLowerCase() === 'person') {
-                label = 'people';
-            } else if (className.toLowerCase().endsWith('s') || className.toLowerCase().endsWith('x') || className.toLowerCase().endsWith('sh') || className.toLowerCase().endsWith('ch')) {
-                label = className + 'es';
-            } else {
-                label = className + 's';
-            }
-        }
-        return `${count} ${label}`;
-    });
-
-    return parts.join(', ');
-}
-
-export default function HistoryCard({ item, onPress, index }) {
-    const summary = buildSummary(item.statistics);
-
+export default function HistoryCard({ item, onPress }) {
     return (
         <TouchableOpacity style={styles.card} onPress={onPress}>
-            <Image
-                source={{ uri: `data:image/jpeg;base64,${item.thumbnail}` }}
-                style={styles.thumbnail}
-            />
-            <View style={styles.info}>
-                <Text style={styles.title} numberOfLines={2}>
-                    {summary}
-                </Text>
-                <Text style={styles.detail}>
-                    {item.count} object{item.count !== 1 ? 's' : ''} detected
-                </Text>
-                <Text style={styles.detail}>
-                    {new Date(item.timestamp).toLocaleString()}
-                </Text>
-            </View>
+        <Image
+            source={{ uri: `data:image/jpeg;base64,${item.thumbnail}` }}
+            style={styles.thumbnail}
+        />
+        <View style={styles.info}>
+            <Text style={styles.title}>
+            Analysis {item.analysis_id.substring(0, 15)}...
+            </Text>
+            <Text style={styles.detail}>Objects Detected: {item.count}</Text>
+            <Text style={styles.detail}>
+            {new Date(item.timestamp).toLocaleString()}
+            </Text>
+        </View>
         </TouchableOpacity>
     );
 }
