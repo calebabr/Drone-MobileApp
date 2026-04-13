@@ -15,6 +15,26 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 # Dedicated summarizer instance (not tied to any session)
 summary_chat_service = ChatService()
 
+_IRREGULAR_PLURALS = {
+    "person": "people",
+    "sheep": "sheep",
+    "fish": "fish",
+    "deer": "deer",
+    "moose": "moose",
+    "aircraft": "aircraft",
+}
+
+def _pluralize(word: str, count: int) -> str:
+    if count == 1:
+        return word
+    if word in _IRREGULAR_PLURALS:
+        return _IRREGULAR_PLURALS[word]
+    if word.endswith(("s", "x", "z", "ch", "sh")):
+        return word + "es"
+    if word.endswith("y") and len(word) > 1 and word[-2] not in "aeiou":
+        return word[:-1] + "ies"
+    return word + "s"
+
 
 @router.post("/create", response_model=CreateSessionResponse)
 async def create_session():
@@ -67,7 +87,7 @@ async def list_sessions():
         top_objects = None
         if class_totals:
             top = sorted(class_totals.items(), key=lambda x: x[1], reverse=True)[:4]
-            top_objects = ", ".join(f"{count} {cls}" for cls, count in top)
+            top_objects = ", ".join(f"{count} {_pluralize(cls, count)}" for cls, count in top)
 
         sessions.append(
             SessionItem(
