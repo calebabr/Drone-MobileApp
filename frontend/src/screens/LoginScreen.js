@@ -44,7 +44,7 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
         setCreatingSession(true);
         try {
             const result = await api.createSession();
-            onSessionStart(result.session_id);
+            onSessionStart(result.session_id, 'New Session');
         } catch (error) {
             console.error('Error creating session:', error);
             Alert.alert('Error', 'Failed to create session. Make sure your backend is running.');
@@ -53,8 +53,8 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
         }
     };
 
-    const handleContinueSession = (sessionId) => {
-        onSessionStart(sessionId);
+    const handleContinueSession = (sessionId, label) => {
+        onSessionStart(sessionId, label);
     };
 
     const handleGetSummary = async (sessionId) => {
@@ -166,7 +166,7 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
 
                 <TouchableOpacity
                     style={styles.continueButton}
-                    onPress={() => handleContinueSession(item.session_id)}
+                    onPress={() => handleContinueSession(item.session_id, headerLabel)}
                 >
                     <Text style={styles.continueButtonText}>Continue Session</Text>
                 </TouchableOpacity>

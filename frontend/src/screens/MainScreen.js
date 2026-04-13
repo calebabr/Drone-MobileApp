@@ -12,7 +12,7 @@ import * as api from '../services/api';
 import { commonStyles } from '../styles/commonStyles';
 import { COLORS } from '../config/constants';
 
-export default function MainScreen({ sessionId, onLogout }) {
+export default function MainScreen({ sessionId, sessionLabel, onLogout }) {
     const [selectedImage, setSelectedImage] = useState(null);
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -155,20 +155,13 @@ export default function MainScreen({ sessionId, onLogout }) {
 
     const allAnalysisIds = analysisHistory.map((item) => item.analysis_id);
 
-    const formatSessionId = (id) => {
-        if (id && id.length > 12) {
-            return id.substring(0, 6) + '...' + id.substring(id.length - 6);
-        }
-        return id || '';
-    };
-
     return (
         <ScrollView style={commonStyles.container}>
             <View style={styles.headerContainer}>
                 <Header />
                 <View style={styles.sessionBar}>
                     <Text style={styles.sessionText}>
-                        Session: {formatSessionId(sessionId)}
+                        {sessionLabel || 'Session'}
                     </Text>
                     <View style={styles.sessionBarButtons}>
                         <TouchableOpacity
