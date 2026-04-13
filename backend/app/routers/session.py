@@ -97,6 +97,7 @@ async def list_sessions():
                 analysis_count=analysis_count,
                 chat_message_count=len(doc.get("chat_history", [])),
                 top_objects=top_objects,
+                person_count=class_totals.get("person", 0),
             )
         )
 

@@ -3,8 +3,11 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { COLORS } from '../config/constants';
 
 export default function HistoryCard({ item, onPress }) {
+    const personCount = item.statistics?.class_distribution?.person || 0;
+    const isFlagged = personCount >= 2;
+
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
+        <TouchableOpacity style={[styles.card, isFlagged && styles.cardFlagged]} onPress={onPress}>
         <Image
             source={{ uri: `data:image/jpeg;base64,${item.thumbnail}` }}
             style={styles.thumbnail}
@@ -34,6 +37,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 2,
+    },
+    cardFlagged: {
+        backgroundColor: COLORS.lightOrange,
     },
     thumbnail: {
         width: 100,

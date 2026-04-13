@@ -109,8 +109,10 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
             ? `Session #${sessionNumber}: ${item.top_objects}`
             : `Session #${sessionNumber}`;
 
+        const isFlagged = item.person_count >= 5;
+
         return (
-            <View style={styles.sessionCard}>
+            <View style={[styles.sessionCard, isFlagged && styles.sessionCardFlagged]}>
                 <View style={styles.sessionHeader}>
                     <Text style={styles.sessionNumber} numberOfLines={2}>{headerLabel}</Text>
                     <TouchableOpacity
@@ -323,6 +325,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
         shadowRadius: 3,
+    },
+    sessionCardFlagged: {
+        backgroundColor: COLORS.lightOrange,
     },
     sessionHeader: {
         flexDirection: 'row',
