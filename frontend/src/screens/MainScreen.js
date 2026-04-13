@@ -160,7 +160,7 @@ export default function MainScreen({ sessionId, sessionLabel, onLogout }) {
             <View style={styles.headerContainer}>
                 <Header />
                 <View style={styles.sessionBar}>
-                    <Text style={styles.sessionText}>
+                    <Text style={styles.sessionText} numberOfLines={1} ellipsizeMode="tail">
                         {sessionLabel || 'Session'}
                     </Text>
                     <View style={styles.sessionBarButtons}>
@@ -239,10 +239,12 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     sessionText: {
+        flex: 1,
         color: COLORS.white,
         fontSize: 13,
         fontWeight: '500',
         opacity: 0.9,
+        marginRight: 8,
     },
     sessionBarButtons: {
         flexDirection: 'row',
