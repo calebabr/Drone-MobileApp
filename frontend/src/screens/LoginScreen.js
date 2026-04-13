@@ -16,8 +16,8 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [creatingSession, setCreatingSession] = useState(false);
+    const [loadingSummary, setLoadingSummary] = useState(null);
     const [summaries, setSummaries] = useState({});
-    const [summaryLoading, setSummaryLoading] = useState({});
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     useEffect(() => {
@@ -30,9 +30,7 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
         }
         try {
             const result = await api.listSessions();
-            const sessionList = result.sessions || [];
-            setSessions(sessionList);
-            fetchAllSummaries(sessionList);
+            setSessions(result.sessions || []);
         } catch (error) {
             console.error('Error fetching sessions:', error);
             if (!hasLoadedOnce) setSessions([]);
@@ -40,30 +38,6 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
             setLoading(false);
             setHasLoadedOnce(true);
         }
-    };
-
-    const fetchAllSummaries = (sessionList) => {
-        if (sessionList.length === 0) return;
-
-        // Mark all as loading
-        const loadingMap = {};
-        sessionList.forEach((s) => { loadingMap[s.session_id] = true; });
-        setSummaryLoading(loadingMap);
-
-        sessionList.forEach(async (session) => {
-            try {
-                const result = await api.getSessionSummary(session.session_id);
-                setSummaries((prev) => ({ ...prev, [session.session_id]: result.summary }));
-            } catch {
-                setSummaries((prev) => ({ ...prev, [session.session_id]: 'No summary available.' }));
-            } finally {
-                setSummaryLoading((prev) => {
-                    const copy = { ...prev };
-                    delete copy[session.session_id];
-                    return copy;
-                });
-            }
-        });
     };
 
     const handleNewSession = async () => {
@@ -81,6 +55,21 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
 
     const handleContinueSession = (sessionId) => {
         onSessionStart(sessionId);
+    };
+
+    const handleGetSummary = async (sessionId) => {
+        if (summaries[sessionId]) return;
+
+        setLoadingSummary(sessionId);
+        try {
+            const result = await api.getSessionSummary(sessionId);
+            setSummaries((prev) => ({ ...prev, [sessionId]: result.summary }));
+        } catch (error) {
+            console.error('Error getting summary:', error);
+            setSummaries((prev) => ({ ...prev, [sessionId]: 'Could not generate summary.' }));
+        } finally {
+            setLoadingSummary(null);
+        }
     };
 
     const handleDeleteSession = (sessionId) => {
@@ -113,13 +102,17 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
 
     const renderSessionItem = ({ item, index }) => {
         const summary = summaries[item.session_id];
-        const isLoadingSummary = summaryLoading[item.session_id];
-        const sessionNumber = index + 1;
+        const isLoadingSummary = loadingSummary === item.session_id;
+        const sessionNumber = sessions.length - index;
+
+        const headerLabel = item.top_objects
+            ? `Session #${sessionNumber}: ${item.top_objects}`
+            : `Session #${sessionNumber}`;
 
         return (
             <View style={styles.sessionCard}>
                 <View style={styles.sessionHeader}>
-                    <Text style={styles.sessionNumber}>Session #{sessionNumber}</Text>
+                    <Text style={styles.sessionNumber} numberOfLines={2}>{headerLabel}</Text>
                     <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={() => handleDeleteSession(item.session_id)}
@@ -127,15 +120,6 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
                         <Text style={styles.deleteButtonText}>Delete</Text>
                     </TouchableOpacity>
                 </View>
-
-                {isLoadingSummary ? (
-                    <View style={styles.summaryLoading}>
-                        <ActivityIndicator size="small" color={COLORS.primary} />
-                        <Text style={styles.summaryLoadingText}>Loading summary...</Text>
-                    </View>
-                ) : summary ? (
-                    <Text style={styles.summaryText}>{summary}</Text>
-                ) : null}
 
                 <Text style={styles.sessionDate}>
                     Created: {new Date(item.created_at).toLocaleDateString()}{' '}
@@ -154,6 +138,29 @@ export default function LoginScreen({ onSessionStart, onOpenUniversalChat }) {
                         </Text>
                     </View>
                 </View>
+
+                {!summary && !isLoadingSummary && (
+                    <TouchableOpacity
+                        style={styles.summaryButton}
+                        onPress={() => handleGetSummary(item.session_id)}
+                    >
+                        <Text style={styles.summaryButtonText}>Summary</Text>
+                    </TouchableOpacity>
+                )}
+
+                {isLoadingSummary && (
+                    <View style={styles.summaryLoading}>
+                        <ActivityIndicator size="small" color={COLORS.primary} />
+                        <Text style={styles.summaryLoadingText}>Generating summary...</Text>
+                    </View>
+                )}
+
+                {summary && (
+                    <View style={styles.summaryContainer}>
+                        <Text style={styles.summaryLabel}>Summary:</Text>
+                        <Text style={styles.summaryText}>{summary}</Text>
+                    </View>
+                )}
 
                 <TouchableOpacity
                     style={styles.continueButton}
@@ -320,29 +327,15 @@ const styles = StyleSheet.create({
     sessionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
+        alignItems: 'flex-start',
+        marginBottom: 6,
+        gap: 8,
     },
     sessionNumber: {
-        fontSize: 16,
+        flex: 1,
+        fontSize: 15,
         fontWeight: 'bold',
         color: COLORS.primary,
-    },
-    summaryLoading: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 8,
-    },
-    summaryLoadingText: {
-        color: COLORS.textLight,
-        fontSize: 13,
-    },
-    summaryText: {
-        fontSize: 13,
-        color: COLORS.text,
-        lineHeight: 19,
-        marginBottom: 8,
     },
     sessionDate: {
         fontSize: 13,
@@ -375,6 +368,48 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.primaryDark,
         fontWeight: '600',
+    },
+    summaryButton: {
+        backgroundColor: COLORS.lightBlue,
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: COLORS.primary,
+    },
+    summaryButtonText: {
+        color: COLORS.primary,
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    summaryLoading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        gap: 10,
+        marginBottom: 10,
+    },
+    summaryLoadingText: {
+        color: COLORS.textLight,
+        fontSize: 13,
+    },
+    summaryContainer: {
+        backgroundColor: COLORS.lightGreen,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 10,
+    },
+    summaryLabel: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#2E7D32',
+        marginBottom: 4,
+    },
+    summaryText: {
+        fontSize: 13,
+        color: COLORS.text,
+        lineHeight: 18,
     },
     continueButton: {
         backgroundColor: COLORS.primary,

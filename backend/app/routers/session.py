@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from app.services.database import get_sessions_collection, get_analytics_collection
 from app.models import (
@@ -22,8 +22,8 @@ async def create_session():
     sessions_col = get_sessions_collection()
 
     session_doc = {
-        "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "analysis_ids": [],
         "chat_history": [],
         "image_hashes": [],
@@ -45,14 +45,29 @@ async def list_sessions():
     sessions_col = get_sessions_collection()
     analytics_col = get_analytics_collection()
 
-    cursor = sessions_col.find({"_type": {"$exists": False}}).sort("created_at", 1)
+    cursor = sessions_col.find({"_type": {"$exists": False}}).sort("created_at", -1)
 
     sessions = []
     for doc in cursor:
-        # Count analyses for this session
-        analysis_count = analytics_col.count_documents(
-            {"session_id": str(doc["_id"])}
+        analyses = list(
+            analytics_col.find(
+                {"session_id": str(doc["_id"])},
+                {"statistics.class_distribution": 1},
+            )
         )
+        analysis_count = len(analyses)
+
+        # Aggregate class counts across all analyses
+        class_totals = {}
+        for analysis in analyses:
+            dist = analysis.get("statistics", {}).get("class_distribution", {})
+            for cls, count in dist.items():
+                class_totals[cls] = class_totals.get(cls, 0) + count
+
+        top_objects = None
+        if class_totals:
+            top = sorted(class_totals.items(), key=lambda x: x[1], reverse=True)[:4]
+            top_objects = ", ".join(f"{count} {cls}" for cls, count in top)
 
         sessions.append(
             SessionItem(
@@ -61,6 +76,7 @@ async def list_sessions():
                 updated_at=doc["updated_at"],
                 analysis_count=analysis_count,
                 chat_message_count=len(doc.get("chat_history", [])),
+                top_objects=top_objects,
             )
         )
 
@@ -138,7 +154,7 @@ Session Data:
 
     try:
         summary = summary_chat_service.generate_summary(summary_prompt)
-    except Exception as e:
+    except Exception:
         summary = f"Session contains {len(analyses)} analyses with {len(chat_history)} chat messages. Created on {session_doc['created_at']}."
 
     return SessionSummaryResponse(

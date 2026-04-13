@@ -98,6 +98,7 @@ class SessionItem(BaseModel):
     updated_at: str
     analysis_count: int = 0
     chat_message_count: int = 0
+    top_objects: Optional[str] = None
 
 
 class SessionListResponse(BaseModel):
